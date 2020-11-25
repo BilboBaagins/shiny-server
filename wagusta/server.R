@@ -431,7 +431,7 @@ shinyServer(function(input, output, session) {
 
     if( is.null(rv$resultsTable_temp) ){
       data <- results_df()
-    }dhgdg
+    }
       else{
         data <- rv$resultsTable_temp
     }
