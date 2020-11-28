@@ -20,6 +20,7 @@ library(lubridate)
 library(stringr)
 library(shinyWidgets)
 library(kableExtra)
+library(digest)
 library(dplyr)
 # Looking into using slickR for carosuel of images. 
 # Potentially, use them to hyperlink to 'news' articles. 
