@@ -13,9 +13,6 @@ shinyUI(
     # tab panel 1 - Home
     tabPanel("Home",
             includeHTML("home.html"),
-            useShinyjs(),
-            #extendShinyjs("app-shinyjs.js", functions = c("updateHistory")),
-            useShinyalert(),
             tags$script(src = "plugins/scripts.js"),
             tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
             tags$head(

@@ -43,65 +43,6 @@ shinyServer(function(input, output, session) {
     
   })
 
-  #----- Navigation Logic -----
-  
-  # Variavle to keep track whether tab switching is manual or progamatic.
-  navigation_values <- reactiveValues(
-    # Variable to keep track of whether or not the tab switching is manual (by the
-    #  user) or automatic (restoring the app's state on initialization or prev/next buttons).
-    autoNavigating = 1
-  )
-    
-  # When the app initializes, if there is a history in the URL, navigate to it.
-  observeEvent(session$clientData$url_search, {
-  
-    # If there is a history in the URL, restore the state.
-    if (nchar(session$clientData$url_search) > 1) {
-      # when the app starts, the input$tabs gets triggered, but we don't
-      # want to trigger the navigation function because the user didn't actively
-      # navigate anywhere
-      
-      restore(session$clientData$url_search)
-    } else{
-        shinyjs::js$updateHistory(page = 'home')
-    }
-    
-  })
-  
-  # Restore() function to restore the Shiny app's state based on the URL.
-  restore <- function(qs) {
-    data <- parseQueryString(qs)
-    
-    if (!is.null(data[['page']])) {
-
-      # Change to the correct tab.
-      updateTabItems(session, "tabs", data[['page']])
-
-    }
-  }
-  
-  # When the user changes tabs, save the state in the URL.
-  observeEvent(input$tabs, {
-  
-    if (navigation_values$autoNavigating == 1) {
-      navigation_values$autoNavigating <- 0
-      return()
-    }
-    shinyjs::js$updateHistory(page = input$tabs)
-  
-  })
-  
-  # When the user clicks prev/next buttons in the browser, restore the state.
-  observeEvent(input$navigatedTo, {
-
-    restore(input$navigatedTo)
-    
-    navigation_values$autoNavigating <- 1
-    
-  })
-
-
-
 
 
 
