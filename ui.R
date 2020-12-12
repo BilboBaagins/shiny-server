@@ -5,6 +5,9 @@ source("appParts.R")
 shinyUI(navbarPage(title = "Putt & Pint Tour",
                    theme = "style/style.css",
                    footer = includeHTML("footer.html"),
+                     useShinyjs(),
+                    extendShinyjs("www/app-shinyjs.js", functions = c("updateHistory")),
+                    useShinyalert(),
                    fluid = TRUE, 
                    collapsible = TRUE,
                    
