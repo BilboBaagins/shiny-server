@@ -47,6 +47,11 @@ h1.title{
 	color: #416983;
 }
 
+.playersTitle{
+	font-weight:bold;
+	font-size:48px;
+}
+
 .carousel h1:after, .carousel h1:before {
     content: " ";
     display: none;
