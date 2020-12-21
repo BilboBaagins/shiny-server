@@ -21,16 +21,38 @@ library(stringr)
 library(shinyWidgets)
 library(kableExtra)
 library(digest)
-library(dplyr)
-# Looking into using slickR for carosuel of images. 
-# Potentially, use them to hyperlink to 'news' articles. 
-# Almost clickbait-y like "Look at what John Rahm did"
+library(htmltools)
 library(slickR)
 library(reactable)
+library(firebase)
+library(dplyr)
 
 # Create a custom value / info box
 createInfoBox <- function(value, iconName, text) {
   return(
     div(div(div(value, class = "label-big"), span(iconName, class = "label-icon"), class = "label-box"), div(text, class = "label-box-explainer"))
   )
+}
+
+# Create a rating stars function.
+rating_stars <- function(rating, max_rating = 5) {
+  star_icon <- function(empty = FALSE) {
+    tagAppendAttributes(shiny::icon("star"),
+      style = paste("font-size: 16px; color:", if (empty) "#edf0f2" else "orange"),
+      "aria-hidden" = "true"
+    )
+  }
+  rounded_rating <- floor(rating + 0.5)  # always round up
+  stars <- lapply(seq_len(max_rating), function(i) {
+    if (i <= rounded_rating) star_icon() else star_icon(empty = TRUE)
+  })
+  label <- sprintf("%s out of %s", rating, max_rating)
+  div(title = label, "aria-label" = label, role = "img", stars)
+}
+
+# Render a bar chart with a label on the left.
+bar_chart <- function(label, width = "100%", height = "16px", fill = "#00bfc4", background = NULL) {
+  bar <- div(style = list(background = fill, width = width, height = height))
+  chart <- div(style = list(flexGrow = 1, marginLeft = "8px", background = background), bar)
+  div(style = list(display = "flex", alignItems = "center"), label, chart)
 }

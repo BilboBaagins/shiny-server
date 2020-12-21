@@ -23,6 +23,19 @@ source("global.R")
 
 shinyServer(function(input, output, session) {
 
+ #----- Firebase Authentication -----
+
+  # Note, this only runs in the Admin tab as the firebase initialise
+  #  functions are only called when this tab is live. 
+  f <- FirebaseUI$
+    new()$ # instantiate
+    set_providers( # define providers
+      email = TRUE
+    )$
+    launch() # launch
+
+
+
   #----- Browser Check Logic -----
   
   # Observe what browser is being used to run application.
@@ -42,9 +55,6 @@ shinyServer(function(input, output, session) {
       }
     
   })
-
-
-
 
 
   # Detect mobile device. 
@@ -90,12 +100,65 @@ shinyServer(function(input, output, session) {
   owgr_data <- reactive({
     data <- read.csv("data/ogr.csv", stringsAsFactors=FALSE, check.names=FALSE)
     colnames(data) <- gsub("\\.", " ", colnames(data)) %>%
-      tolower() %>%
-      toTitleCase()
+      tolower()
     return(data)
   })
 
-  
+  # Players (lookup table)
+  players_data <- reactive({
+    data <- data.frame(
+      Name = c(
+        "Billy Archbold", 
+        "Tiarnan O'Brien", 
+        "Dan Courtney",
+        "Gearoid Comber",
+        "Sean Whitson",
+        "Luke Smith",
+        "David Benn",
+        "Aron Morris",
+        "Craig Hyland",
+        "Darragh Sheehan",
+        "David Lynch",
+        "Feidhlim Dowling",
+        "Mark Donnelly",
+        "Niall Devane",
+        "Sean McDermott",
+        "Oisin Tyrell",
+        "Eoin Messitt",
+        "Stephen Pigott",
+        "Ian Cox",
+        "Phil Mahon",
+        "Dave McGrath",
+        "Will Molloy"
+        ),
+      Alias = c(
+        "billy",
+        "t",
+        "dinny",
+        "g",
+        "winnie",
+        "smith",
+        "davidbenn",
+        "aaronmorris",
+        "craighyland",
+        "sheano",
+        "davidlynch",
+        "faylo",
+        "markdonnelly",
+        "nialldevane",
+        "seaniemac",
+        "oisin",
+        "messy",
+        "piggy",
+        "iancox",
+        "philmahon",
+        "davemcgrath",
+        "willmolloy"
+      )
+    )
+    data$ID <- 1:nrow(data)
+    return(data)
+  })
 
 
   #### Section 1: Home Page
@@ -323,9 +386,58 @@ shinyServer(function(input, output, session) {
     # TO DO:
     # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
     data <- owgr_data()
+    data$'average ranking points' <- dplyr::coalesce(data$'average ranking points', 0)
+    data$'events played' <- dplyr::coalesce(data$'events played', 0)
+    players_data <- players_data()
 
+
+    ratings <- data.frame(
+      Movie = c("Silent Serpent", "Nowhere to Hyde", "The Ape-Man Goes to Mars", "A Menace in Venice"),
+      Rating = c(3.65, 2.35, 4.5, 1.4),
+      Votes = c(115, 37, 60, 99)
+    )
+
+    reactable(ratings, columns = list(
+      Rating = colDef(cell = function(value) rating_stars(value))
+    ))
+
+    # Build the data table.
     reactable(
-      data
+      data,
+      filterable = TRUE,
+      searchable = TRUE,
+      minRows = 10,
+      highlight = TRUE,
+      columns = list(
+        name = colDef(
+          html = TRUE,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        ),
+        'major wins' = colDef(
+          cell = function(value){
+            rating_stars(value)
+          }
+        ),
+        'average ranking points' = colDef(
+          align = "left", 
+          cell = function(value){
+            width <- paste0(value / max(data$'average ranking points') * 100, "%")
+            bar_chart(format(round(value, 2), nsmall = 2), width = width, background = "#e1e1e1")
+          }
+        ),
+        'events played' = colDef(
+          align = "left", 
+          cell = function(value){
+            width <- paste0(value / max(data$'events played') * 100, "%")
+            bar_chart(value, width = width, fill = "#fc5185", background = "#e1e1e1")
+          }
+        )
+      )
     )
 
   })
@@ -357,10 +469,27 @@ shinyServer(function(input, output, session) {
 
   # Upload Results.
   output$admin_uploadResults <- renderUI({
+
+    f$req_sign_in() # require sign in
+
     actionButton(
       inputId = "admin_uploadResults_input",
       label = "Upload Results"
     )
+  })
+
+  # Sign-out button.
+  output$signoutButton <- renderUI({
+    f$req_sign_in()
+    
+    div(style = "padding:8px;", 
+        tags$li(actionButton("signout", "Sign out", class = "btn-danger", style = "color:white;"), class = "dropdown"))
+    
+  })
+
+  # Sign user out.
+  observeEvent(input$signout,{
+    f$sign_out()
   })
 
   # Listener - admin_uploadResults_input.

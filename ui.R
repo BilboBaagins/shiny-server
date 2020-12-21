@@ -34,7 +34,7 @@ shinyUI(
     # ----------------------------------
     # tab panel 3 - FedEx Cup
     tabPanel("FedEx Cup",
-    div(actionButton("test", "test"))
+    reactableOutput("fedExCup_table")
     ),
     
     # ----------------------------------
@@ -73,8 +73,11 @@ shinyUI(
     # ----------------------------------
     # tab panel 7 - Admin
     tabPanel("Admin",
+    useFirebase(), # import dependencies
+    useFirebaseUI(), # import UI
     fluidRow(
-      div(uiOutput("admin_uploadResults"))
+      div(uiOutput("admin_uploadResults")),
+      div(uiOutput("signoutButton"))
     )
   )
 
