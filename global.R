@@ -35,18 +35,18 @@ createInfoBox <- function(value, iconName, text) {
 }
 
 # Create a rating stars function.
-rating_stars <- function(rating, max_rating = 5) {
+rating_stars <- function(rating) {
   star_icon <- function(empty = FALSE) {
     tagAppendAttributes(shiny::icon("star"),
-      style = paste("font-size: 16px; color:", if (empty) "#edf0f2" else "orange"),
+      style = paste("font-size: 16px; padding: 0px; color: ", if (empty) "#edf0f2" else "orange"),
       "aria-hidden" = "true"
     )
   }
   rounded_rating <- floor(rating + 0.5)  # always round up
-  stars <- lapply(seq_len(max_rating), function(i) {
-    if (i <= rounded_rating) star_icon() else star_icon(empty = TRUE)
+  stars <- lapply(seq_len(rounded_rating), function(i) {
+    star_icon()
   })
-  label <- sprintf("%s out of %s", rating, max_rating)
+  label <- sprintf("%s stars", rating)
   div(title = label, "aria-label" = label, role = "img", stars)
 }
 

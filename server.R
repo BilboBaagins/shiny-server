@@ -23,6 +23,9 @@ source("global.R")
 
 shinyServer(function(input, output, session) {
 
+  # print list of input events
+  output$text <- renderPrint({reactiveValuesToList(input)})
+
  #----- Firebase Authentication -----
 
   # Note, this only runs in the Admin tab as the firebase initialise
@@ -30,7 +33,9 @@ shinyServer(function(input, output, session) {
   f <- FirebaseUI$
     new()$ # instantiate
     set_providers( # define providers
-      email = TRUE
+      email = TRUE#,
+      #google = TRUE,
+      #facebook = TRUE
     )$
     launch() # launch
 
@@ -56,20 +61,14 @@ shinyServer(function(input, output, session) {
     
   })
 
-
-  # Detect mobile device. 
-  is_mobile_device <- reactive(isTRUE(input$is_mobile_device))
-
-  # Collapse the sidebar after tab select - good performance for mobile layout.
-  observeEvent(input$tabs, {
-
-    # If mobile device detected, collapse sidebar on click of sidebar menu.
-    if(is_mobile_device()){
-      shinyjs::toggleClass(selector = "body", class = "sidebar-open")
-    }
-    
-  }, ignoreInit = TRUE)
-
+  # Collapse the navbar menu after li selection.
+  observeEvent(input$navBar, {
+    runjs('
+      var elem = document.getElementsByClassName("navbar-collapse")[0]
+      elem.setAttribute("aria-expanded", "false");
+      elem.setAttribute("class", "navbar-collapse collapse");
+    ')
+  })
 
 
 
@@ -390,27 +389,27 @@ shinyServer(function(input, output, session) {
     data$'events played' <- dplyr::coalesce(data$'events played', 0)
     players_data <- players_data()
 
-
-    ratings <- data.frame(
-      Movie = c("Silent Serpent", "Nowhere to Hyde", "The Ape-Man Goes to Mars", "A Menace in Venice"),
-      Rating = c(3.65, 2.35, 4.5, 1.4),
-      Votes = c(115, 37, 60, 99)
-    )
-
-    reactable(ratings, columns = list(
-      Rating = colDef(cell = function(value) rating_stars(value))
-    ))
+    data <- data %>%
+      select(
+        "world ranking position", 
+        "name", 
+        "average ranking points", 
+        "events played", 
+        "major wins"
+      )
 
     # Build the data table.
     reactable(
       data,
       filterable = TRUE,
       searchable = TRUE,
-      minRows = 10,
       highlight = TRUE,
       columns = list(
         name = colDef(
           html = TRUE,
+          minWidth = 200,
+          maxWidth = 200,
+          width = 200,
           cell = function(value) {
             # Use player_data as lookup table to grab alias for photos. 
             temp <- players_data %>% 
@@ -419,6 +418,9 @@ shinyServer(function(input, output, session) {
           }
         ),
         'major wins' = colDef(
+          minWidth = 200,
+          maxWidth = 200,
+          width = 200,
           cell = function(value){
             rating_stars(value)
           }
@@ -443,6 +445,66 @@ shinyServer(function(input, output, session) {
   })
 
 
+
+
+
+  #### Section 7: Stats
+
+  output$topThreeFinishes <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+
+    # Wrangle major results data to extract top three finishes.
+    data <- data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(3, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      select(-playoff_win) %>%
+      data.frame() %>%
+      # Create final count & rank of top three finishes. 
+      group_by(Player) %>%
+      summarise(Top3 = n()) %>%
+      arrange(-Top3, Player) %>%
+      mutate( Rank = dense_rank(-Top3) ) %>%
+      data.frame() %>% 
+      rename('Top 3' = Top3) %>% 
+      select(Rank, Player, 'Top 3')
+
+      # Build the table.
+      reactable(
+        data,
+        filterable = TRUE,
+        searchable = TRUE,
+        defaultPageSize = 5,
+        highlight = TRUE,
+        columns = list(
+          Player = colDef(
+            html = TRUE,
+            minWidth = 200,
+            maxWidth = 200,
+            width = 200,
+            cell = function(value) {
+              # Use player_data as lookup table to grab alias for photos. 
+              temp <- players_data %>% 
+                filter(Name == value)
+              paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+            }
+          )
+        )
+      )
+
+  })
 
 
 
@@ -669,6 +731,7 @@ shinyServer(function(input, output, session) {
   
                    
   })
+
 
 
 
