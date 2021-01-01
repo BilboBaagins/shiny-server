@@ -1,7 +1,6 @@
 source("global.R")
 source("appParts.R")
 
-#shinyUI(navbarPage(title = div(img(src="golf_loading.gif")),#, height = 50, width = 180)),
 shinyUI(
     navbarPage(
       title = "paptour.com",
@@ -58,13 +57,46 @@ shinyUI(
       # ----------------------------------
       # tab panel 5 - Stats
       tabPanel("Stats",
-        fluidRow(
-          reactableOutput("topThreeFinishes", width = 500),
-          br(), br(), br(),
-          div("1. History of Major Winners"),
-          div("2. Top 3 finishes"),
-          div("3. FedEx Cup Standings"),
-          div("4. FedEx Cup Standings")
+        shinyjs::useShinyjs(),
+        tags$head(
+            tags$link(rel = "stylesheet", 
+                      type = "text/css", 
+                      href = "plugins/carousel.css"),
+            tags$script(src = "plugins/holder.js")
+        ),
+        isMobile(),
+        fluidPage(
+          fluidRow(
+            column(6, 
+              div(uiOutput("fedExCupTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("fedExCup"), style="text-align:center;"),
+              div(uiOutput("fedExCupSeeMore"), style="text-align:center;margin-bottom:50px;")
+            ),
+            column(6, 
+              div(uiOutput("majorWinsTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("majorWins"), style="text-align:center; margin-bottom:50px;")
+            )
+          ),
+          fluidRow(
+            column(6, 
+              div(uiOutput("topThreeFinishesTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("topThreeFinishes"), style="text-align:center; margin-bottom:50px;")
+            ),
+            column(6, 
+              div(uiOutput("majorAttendanceTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("majorAttendance"), style="text-align:center; margin-bottom:50px;")
+            )
+          ),          
+          fluidRow(
+            column(6, 
+              div(uiOutput("avgScoringTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("avgScoring"), style="text-align:center; margin-bottom:50px;")
+            ),
+            column(6, 
+              div(uiOutput("woodenSpoonTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("woodenSpoon"), style="text-align:center; margin-bottom:50px;")
+            )
+          )
         )
       ),
       # ----------------------------------

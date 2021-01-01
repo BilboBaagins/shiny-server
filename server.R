@@ -23,11 +23,29 @@ source("global.R")
 
 shinyServer(function(input, output, session) {
 
+
   # print list of input events
   output$text <- renderPrint({reactiveValuesToList(input)})
 
- #----- Firebase Authentication -----
+  # Sanity check - print to console whether mobile device or not. 
+  observeEvent(input$isMobile, {
+    
+    if(input$isMobile){
+      print("You're on mobile device.")
+    } 
+    else{
+      print("You're not on mobile device.")
+    }
 
+  })
+
+
+
+ #----- Detect Mobile ------
+ #is_mobile_device <- reactive(isTRUE(input$is_mobile_device))
+
+
+ #----- Firebase Authentication -----
   # Note, this only runs in the Admin tab as the firebase initialise
   #  functions are only called when this tab is live. 
   f <- FirebaseUI$
@@ -42,7 +60,6 @@ shinyServer(function(input, output, session) {
 
 
   #----- Browser Check Logic -----
-  
   # Observe what browser is being used to run application.
   # If Firefox or Edge are detected, display shinyalert advising 
   #  user to run application on Google Chrome browser.
@@ -450,11 +467,136 @@ shinyServer(function(input, output, session) {
 
   #### Section 7: Stats
 
-  output$topThreeFinishes <- renderReactable({
+  # FedEx Cup -----------
+  # FedEx Cup - Title. 
+  output$fedExCupTitle <- renderUI({
+
+    div(
+      div("FedEx Cup", HTML("<i id='fedExCupTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("fedExCupTitleID", "FedEx Cup Standings", "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # FedEx Cup - temp.
+  output$fedExCup_temp <- renderReactable({
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Load data. 
+    data <- owgr_data()
+    data$'average ranking points' <- dplyr::coalesce(data$'average ranking points', 0)
+    data$'events played' <- dplyr::coalesce(data$'events played', 0)
+    players_data <- players_data()
+
+    data <- data %>%
+      rename(Rank = "world ranking position") %>% 
+      rename(Player = name) %>% 
+      rename("FedEx Cup Points" = "average ranking points") %>% 
+      select(
+        Rank, 
+        Player, 
+        "FedEx Cup Points"
+      )
+
+    # Build the data table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = 200,
+          maxWidth = 200,
+          width = 200,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+
+  })
+
+  # FedEx Cup. 
+  output$fedExCup <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+    div(reactableOutput("fedExCup_temp"), style = var_width, class="reactBox align")
+
+  })
+
+  # See More button for FedExCup tab.
+  output$fedExCupSeeMore <- renderUI({
+
+    actionLink("fedExCupSeeMore_input", "See More")
+
+  })
+
+  # Jump user to FedExCup tab. 
+  observeEvent(input$fedExCupSeeMore_input, {
+
+    updateTabsetPanel(session, "navBar", selected = "FedEx Cup")
+
+  })
+
+
+  # Top 3 Finishes -----------
+  # Top 3 Finishes - Title. 
+  output$topThreeFinishesTitle <- renderUI({
+
+    div(
+      div("Top 3 Finishes", HTML("<i id='topThreeFinishesTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("topThreeFinishesTitleID", "Top 3 Finishes", "Number of career top three finishes.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # Number of Top 3 Finishes - temp.
+  output$topThreeFinishes_temp <- renderReactable({
 
     # Load data.
     data <- major_results_data()
     players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
 
 
     # Wrangle major results data to extract top three finishes.
@@ -478,33 +620,423 @@ shinyServer(function(input, output, session) {
       arrange(-Top3, Player) %>%
       mutate( Rank = dense_rank(-Top3) ) %>%
       data.frame() %>% 
-      rename('Top 3' = Top3) %>% 
-      select(Rank, Player, 'Top 3')
+      rename('No. Top 3 Finishes' = Top3) %>% 
+      select(Rank, Player, 'No. Top 3 Finishes')
 
-      # Build the table.
-      reactable(
-        data,
-        filterable = TRUE,
-        searchable = TRUE,
-        defaultPageSize = 5,
-        highlight = TRUE,
-        columns = list(
-          Player = colDef(
-            html = TRUE,
-            minWidth = 200,
-            maxWidth = 200,
-            width = 200,
-            cell = function(value) {
-              # Use player_data as lookup table to grab alias for photos. 
-              temp <- players_data %>% 
-                filter(Name == value)
-              paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
-            }
-          )
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      defaultPageSize = 5, 
+      minRows = 5,
+      highlight = TRUE,
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
         )
       )
+    )
 
   })
+
+  # Number of Top 3 Finishes.
+  output$topThreeFinishes <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+    div(reactableOutput("topThreeFinishes_temp"), style = var_width, class="reactBox align")
+
+  })
+
+
+  # Major Wins -----------
+  # Major Wins - Title. 
+  output$majorWinsTitle <- renderUI({
+
+    div(
+      div("Major Wins", HTML("<i id='majorWinsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("majorWinsTitleID", "Major Wins", "Number of career major wins.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # Number of Major Wins - temp.
+  output$majorWins_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Wrangle major results data to extract top three finishes.
+    data <- data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      select(-playoff_win) %>%
+      data.frame() %>%
+      # Create final count & rank of top three finishes. 
+      group_by(Player) %>%
+      summarise(Top1 = n()) %>%
+      arrange(-Top1, Player) %>%
+      mutate( Rank = dense_rank(-Top1) ) %>%
+      data.frame() %>% 
+      rename('Wins' = Top1) %>% 
+      select(Rank, Player, 'Wins')
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+  })
+
+  # Number of Major Wins.
+  output$majorWins <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+   div(reactableOutput("majorWins_temp"), style = var_width, class="reactBox align")
+
+  })
+
+
+  # Major Attendance -----------
+  # Major Attendance - Title.
+  output$majorAttendanceTitle <- renderUI({
+
+    div(
+      div("Major Attendance", HTML("<i id='majorAttendanceTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("majorAttendanceTitleID", "Major Attendance", "The number of major tournaments entered by each player.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # Major Attendance - temp.
+  output$majorAttendance_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Wrangle major results data to extract attendance.
+    data <- data.frame(table(data$Player))
+    colnames(data)[1] <- "Player"
+    colnames(data)[2] <- "Majors"
+    data <- data[order(data$Majors, decreasing=TRUE),]
+    data <- data %>% 
+      mutate( Rank = dense_rank(-Majors) ) %>% 
+      data.frame()
+    data <- data[c('Rank', 'Player', 'Majors')]
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+  })
+
+  # Major Attendance.
+  output$majorAttendance <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+   div(reactableOutput("majorAttendance_temp"), style = var_width, class="reactBox align")
+
+  })
+
+
+  # Average Scoring -----------
+  # Average Scoring - Title.
+  output$avgScoringTitle <- renderUI({
+
+    div(
+      div("Average Scoring", HTML("<i id='avgScoringeTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("avgScoringeTitleID", "Average Scoring", "Stableford scores averaged across all entered tournaments.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  }) 
+
+  # Average Scoring - temp. 
+  output$avgScoring_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Wrangle data to extract Average Scoring across attended majors.
+    data <- data %>% 
+      group_by(Player) %>% 
+      mutate(Avg_Score = mean(Score)) %>%
+      select(Player, Avg_Score) %>%
+      unique() %>%
+      arrange(-Avg_Score) %>%
+      data.frame() %>% 
+      mutate( Rank = dense_rank(-Avg_Score) ) %>% 
+      rename('Average Score' = Avg_Score)
+
+    data$'Average Score' <- round(data$'Average Score', 1)
+    data <- data[c('Rank', 'Player', 'Average Score')]
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+  })
+
+  # Average Scoring.
+  output$avgScoring <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+   div(reactableOutput("avgScoring_temp"), style = var_width, class="reactBox align")
+
+  })
+
+
+  # Wooden Spoon -----------
+  # Wooden Spoon - Title. 
+  output$woodenSpoonTitle <- renderUI({
+
+    div(
+      div("Wooden Spoon", HTML("<i id='woodenSpoonTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("woodenSpoonTitleID", "Wooden Spoon", "Number of last-place finishes.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  }) 
+  
+  # Wooden Spoon - temp. 
+  output$woodenSpoon_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Wrangle major results data to extract number of last place finishes.
+    data <- data %>% 
+      arrange(Major, Score) %>%
+      group_by(Major) %>% 
+      top_n(1, -Score) %>% 
+      data.frame()
+
+    data <- data.frame(table(data$Player))
+
+    colnames(data)[1] <- "Player"
+    colnames(data)[2] <- "No. Wooden Spoons"
+    data <- data[order(data$'No. Wooden Spoons', decreasing=TRUE),]
+
+    data <- data %>% 
+      mutate( Rank = dense_rank(-data$'No. Wooden Spoons') )
+
+    data <- data[c('Rank', 'Player', 'No. Wooden Spoons')]
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+  })
+
+  # Wooden Spoon. 
+  output$woodenSpoon <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+   div(reactableOutput("woodenSpoon_temp"), style = var_width, class="reactBox align")
+
+  })
+  
+  
+
+
 
 
 

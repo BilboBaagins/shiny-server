@@ -600,3 +600,19 @@ i:hover{
 @media (min-width:961px)  { /* tablet, landscape iPad, lo-res laptops ands desktops */ }
 @media (min-width:1025px) { /* big landscape tablets, laptops, and desktops */ }
 @media (min-width:1281px) { /* hi-res laptops and desktops */ }
+
+.align{
+	vertical-align:top;
+	display:inline-block;
+	margin-left:10px;
+  }
+
+.reactBox {
+	margin-top: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+  }
+
+.table-title{
+	font-size: 20px;
+}
