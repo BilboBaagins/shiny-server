@@ -6,20 +6,15 @@ source("global.R")
 
   #### Table of Contents
   #### Section 0: Load Data
-  #### Section 1: Home Page
-  #### Section 2: Leaderboard
-  #### Section 3: Schedule
-  #### Section 4: Tee-Times
-  #### Section 5: Players
-  #### Section 6: FedEx Cup Standings
-  #### Section 7: Stats
-  #### Section 8: Media
-  #### Section 9: Admin
-    #### a) Upload Major Results
-    #### b) Major Preview Table
+  #### Section 1: Home
+  #### Section 2: Schedule
+  #### Section 3: FedEx Cup
+  #### Section 4: Players
+  #### Section 5: Stats
+  #### Section 6: Results
+  #### Section 7: Admin
   
-  
-  
+    
 
 shinyServer(function(input, output, session) {
 
@@ -185,190 +180,127 @@ shinyServer(function(input, output, session) {
   #  Would be great if I could implement the navigate to tab based on click. 
   
 
-  # TO DO: Move to the News/Media Tab. 
-  output$homeImage <- renderSlickR({
 
-    # Get list of images from public folder for display on carosuel.
-    img_path_list <- dir("www")[grep(".jpg", dir("www"))]
-    img_path_list <- paste0("www/", img_path_list)
 
-    if(is_mobile_device()){
-      width <- "85%"
-      height <- 100
-    } else{
-        width <- "85%"
-        height <- 400
-    }
 
-    # Create slickR carosuel of images. 
-    slick <- slickR(
-      img_path_list,
-      slideId = "baseDiv",
-      slideType = "img",
-      objLinks = "www.google.com",
-      padding = 1,
-      width = width,
-      height = height,
-      elementId = NULL,
-      slickOpts = NULL,
-      synchSlides = NULL,
-      dotObj = NULL
+  #### Section 2: Schedule
+
+  # Create Major Schedule Data.
+  # NOTE: I will need to figure out how to do this on the fly as it will be relatively dynamic.
+  # Not like we will have four majors planned months in advance, although that would be ideal.
+  major_schedule_data <- reactive({
+    
+    data <- data.frame(
+      Date = c("2021-01-05", "2021-01-06", "2021-01-07", "2021-01-08"),
+      Course = c("Glenlo Abbey", "Cradockstown", "Naas Golf Club", "St. Helens Bay"), 
+      Location = c("Galway", "Kildare", "Kildare", "Wexford"), 
+      'Defending Champion' = c("---", "Sean Whitson", "---", "Billy Archbold"), 
+      'Previous Major' = c("New Event Location", "2020-07-25", "New Event Location", "2019-08-24"), 
+      'FedEx Cup Points' = c(500, 600, 500, 600), 
+      lat = c(53.30153932321068, 53.20600158084217, 53.2491351564649, 52.232036548098975), 
+      lon = c(-9.099569139421591, -6.638881368349008, -6.644518363898139, -6.3249840192094835),
+      check.names=FALSE
     )
 
-    # Apply extra customisation settings to slickR object such as, autoplay.
-    slick + settings(autoplay = TRUE, 
-                    autoplaySpeed = 3000,
-                    arrows = FALSE,
-                    speed = 600)
+    return(data)
 
   })
 
+  # Schedule Table - Title. 
+  output$majorScheduleTableTitle <- renderUI({
 
+    div(
+      div("Major Schedule", HTML("<i id='majorScheduleTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("majorScheduleTitleID", "Major Schedule", "Upcoming major events. Expand table rows for more detail on upcoming majors.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
 
-  #### Section 2: Leaderboard
-  # Because we don't do multi-day events, this might be a bit redundant. 
-  # But it can be used in same way as PGA tour, where leaderboard is literally
-  #  the previous leaderboard from last tournament. 
-  # So it is essentially the previous major results until the next one is played.
-  # The leaderboard table should probably be same layout etc as the table that 
-  #  extends from the 'Tournament Schedule' tab.
+  }) 
+  
+  # Schedule Table - temp. 
+  output$majorScheduleTable_temp <- renderReactable({
 
-  # ReactJS or datatable here?
-  # Prob reactable table as it would work better with schedule and will
-  #  need to keep them both consistent. 
+    # Load data.
+    data <- major_schedule_data() 
+    
+    #data <- data %>% 
+      #select(-lat, -lon)
 
-
-
-
-  #### Section 3: Schedule
-
-  # Create map object. 
-  output$schedule_courseMap <- renderLeaflet({
-
-    # Custom function to add map legend. 
-    addLegendCustom <- function(map, colors, labels, sizes, opacity = 0.5){
-        colorAdditions <- paste0(colors, "; width:", sizes, "px; height:", sizes, "px")
-        labelAdditions <- paste0("<div style='display: inline-block;height: ", sizes, "px;margin-top: 4px;line-height: ", sizes, "px;'>", labels, "</div>")
-
-        return(addLegend(map, colors = colorAdditions, labels = labelAdditions, opacity = opacity))
-    }
-
-    # Get course data from reactive. 
-    course_data <- course_data()
-
-    # Create the leaflet map.
-    leaflet() %>%
-
-    setView(lat = 53.10, lng = -7.93, zoom = 4) %>%
-
-    addProviderTiles("CartoDB.Positron", group = "Greyscale") %>% 
-    addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
-    addBootstrapDependency() %>%
-    addFullscreenControl() %>%
-
-    # Reset map view centre of USA.
-    addEasyButton(easyButton(
-        id = "reset_map_input",
-        icon="fa-globe", 
-        title="Reset View",
-        onClick=JS("
-            function(btn, map) {
-                    map.setView([53.10, -7.93], 4);
-                  Shiny.onInputChange('reset_schedule_courseMap_input', null);
-                  Shiny.onInputChange('reset_schedule_courseMap_input', 'clicked');
-                }
-            "))) %>%
-
-    addCircleMarkers(
-        data = course_data,
-        radius = 10,
-        color = "#7b9fcf", # Blue
-        stroke = FALSE, 
-        fillOpacity = 0.5,
-        group = "USA", 
-        label = course_data$Course,
-        popup = paste0("Location <b>", course_data$Location, "</b><br>", 
-            "SI <b>", course_data$SI, "</b><br>")
-    ) %>% 
-
-    # Layer Control
-    addLayersControl(
-        baseGroups = c("Greyscale", "Satellite"),
-        options = layersControlOptions(collapsed = FALSE)) %>%
-
-    addLegendCustom(colors = c("#7b9fcf"), labels = c("Course"), sizes = c(20))
-
-  })
-
-  # Display parent themes in datatable
-  output$schedule_courseTable <- DT::renderDataTable({
-
-    data <- course_data()
-
-    # Create a new ZOOM column in table df. Populate it with HTML for creating a zoom icon.
-    data$Zoom <- paste0("<i class='fal fa-dot-circle zoom-table-button'
-                                onclick='Shiny.setInputValue(\"schedule_courseMap_zoom\", null); Shiny.setInputValue(\"schedule_courseMap_zoom\", ", as.numeric(rownames(data)), ");'>
-                            </i>")
-
-    print(data)
-
-    colnames(data)[6] <- ""
-
-    datatable(data,
-        style = "bootstrap", 
-        class = "row-border hover compact",
-        selection = list(mode = "single",
-                        target = "row",
-                        selected = 1),
+    # Build the table with nested table inside.
+    reactable(
+      data, 
+      filterable = FALSE,
+      searchable = FALSE,
+      highlight = TRUE,
+      columns = list(
+        lat = colDef(show=FALSE),
+        lon = colDef(show=FALSE)
+      ),
+      details = function(index) {
         
-        rownames = FALSE,
-        escape = FALSE,
-        editable = FALSE,
-        options = list(sDom = '<"top">f<"bottom">rtli',
-                        pageLength = 100,
-                        lengthMenu = list(c(100, -1), c("100", "All")),
-                        sortClasses = TRUE,
-                        ordering = TRUE,
-                        scrollX = TRUE,
-                        autoWidth = FALSE,
-                        scrollY = "200px",
-                        searching = TRUE
+        map_data <- data[index, ]
+        
+        htmltools::div(style = "padding-top: 26px; padding-left: 100px; padding-right: 100px; padding-bottom: 100px;",
+
+          leaflet() %>% 
+            setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
+            addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
+            addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
+            addProviderTiles("CartoDB.Positron", group = "Greyscale") %>% 
+            addMarkers(
+              lat = map_data$lat, 
+              lng = map_data$lon,
+              label = map_data$Course,
+              popup = paste0(
+                "Course <b>", map_data$Course, "</b><br>", 
+                "Location <b>", map_data$Location, "</b><br>",
+                "Defending Champion <b>", map_data$'Defending Champion', "</b><br>",
+                "Previous Major <b>", map_data$'Previous Major', "</b><br>",
+                "FedEx Cup Points <b>", map_data$'FedEx Cup Points', "</b><br>"
+              )
+            ) %>% 
+            addFullscreenControl() %>% 
+            addMeasure(
+              position = "bottomleft",
+              primaryLengthUnit = "feet",
+              secondaryLengthUnit = "meters",
+              activeColor = "#3D535D",
+              completedColor = "#7D4479"
+            ) %>% 
+            # Reset map view to original render.
+            addEasyButton(easyButton(
+                icon="fas fa-location-arrow",
+                title="Reset View",
+                onClick=JS(paste0("
+                    function(btn, map) {
+                      map.setView([", map_data$lat,", ", map_data$lon,"], 16);
+                    }
+                    ")))) %>%
+            # Layers control
+            addLayersControl(
+              baseGroups = c("Satellite", "OpenStreetMap", "Greyscale"),
+              #overlayGroups = c("Quakes", "Outline"),
+              options = layersControlOptions(collapsed = TRUE)
+            )
+
         )
+      }
     )
-  })
-
-  # Listen for table click event.
-  observeEvent(input$schedule_courseMap_zoom ,{
-
-    data <- course_data()
-
-    print("print(input$schedule_courseMap_zoom)")
-    print(input$schedule_courseMap_zoom)
-
-    #data <- data[data$Course == input$schedule_courseMap_zoom,]
-    data <- data[input$schedule_courseMap_zoom,]
-
-    leafletProxy("schedule_courseMap", session) %>%
-        setView(lng = data$lon, lat = data$lat, zoom = 12) %>%
-        addCircleMarkers(
-            data = data,
-            radius = 15,
-            color = "#2dbdb6", # Teal
-            stroke = FALSE, 
-            fillOpacity = 0.5,
-            layerId = "highlighted", 
-            label = data$Course,
-            popup = paste0("Course <b>", data$Course, "</b><br>", 
-                "Location <b>", data$Location, "</b><br>")
-        )
-
 
   })
 
-  observeEvent(input$reset_schedule_courseMap_input, {
+  # Schedule Table. 
+  output$majorScheduleTable <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:1500px;"
+     }
 
-      leafletProxy("schedule_courseMap", session) %>%
-      removeLayer(c("highlighted")) 
+   div(reactableOutput("majorScheduleTable_temp"), style = var_width, class="reactBox align")
 
   })
 
@@ -377,7 +309,12 @@ shinyServer(function(input, output, session) {
 
 
 
-  #### Section 6: FedEx Cup Standings
+
+
+
+
+
+  #### Section 3: FedEx Cup Standings
 
   # Points Leader
   output$rankingPlayer <- renderUI({
@@ -465,7 +402,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  #### Section 7: Stats
+  #### Section 4: Stats
 
   # FedEx Cup -----------
   # FedEx Cup - Title. 
@@ -1035,6 +972,132 @@ shinyServer(function(input, output, session) {
   })
   
   
+
+
+
+
+
+
+
+  #### Section 4: Players
+  # There is no server logic for the Players tab- it's all contained in the about.html file. 
+
+
+
+
+
+
+
+
+  #### Section 5: Results
+
+  # Results Table - Title. 
+  output$majorResultsTableTitle <- renderUI({
+
+    div(
+      div("Major Results", HTML("<i id='majorResultsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("majorResultsTitleID", "Major Results", "Historic major results. Expand table rows for more information on particular event.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  }) 
+  
+  # Results Table - temp. 
+  output$majorResultsTable_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+
+    # Create high-level major results data.
+    major_results_data_temp1 <- data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      # Remove any playoff non-winners.
+      filter(Position == min(Position)) %>% 
+      select(-playoff_win, -Position) %>%
+      data.frame()
+
+    # Supplementary high-level major stats,
+    major_results_data_temp2 <- data %>%       
+      group_by(Major) %>% 
+      mutate(Field = n()) %>% 
+      mutate(Mean_Score = round(mean(Score), 1)) %>% 
+      mutate(Median_Score = round(median(Score), 1)) %>% 
+      mutate(Mean_Handicap = round(mean(Handicap), 1)) %>% 
+      mutate(Median_Handicap = round(median(Handicap), 1)) %>% 
+      select(Major, Field, Mean_Score, Median_Score, Mean_Handicap, Median_Handicap) %>%
+      unique() %>% 
+      data.frame() 
+
+    # Join into one view and rename some columns. 
+    major_results_data <- left_join(major_results_data_temp1, major_results_data_temp2) %>% 
+      rename(Winner = Player) %>%
+      rename('Mean Handicap' = Mean_Handicap) %>%
+      rename("Median Handicap" = Median_Handicap) %>%
+      rename("Mean Score" = Mean_Score) %>%
+      rename("Median Score" = Median_Score) %>%
+      select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+
+    # Convert to date field.
+    major_results_data$Date <- lubridate::dmy(major_results_data$Date)
+
+#    players_data <- players_data()
+
+#    if(input$isMobile){
+#      var_width <- 150
+#      var_width_rank <- 50
+#    } 
+#      else{
+#        var_width <- 200
+#        var_width_rank <- 120
+#      }
+
+    # Build the table with nested table inside.
+    reactable(
+      major_results_data, 
+      filterable = TRUE,
+      searchable = TRUE,
+      highlight = TRUE,
+      details = function(index) {
+        event_data <- data[data$Major == major_results_data$Major[index], ]
+        htmltools::div(style = "padding: 16px",
+          reactable(
+            event_data, 
+            outlined = TRUE,
+            highlight = TRUE
+          )
+        )
+      }
+    )
+
+  })
+
+  # Results Table. 
+  output$majorResultsTable <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:1500px;"
+     }
+
+   div(reactableOutput("majorResultsTable_temp"), style = var_width, class="reactBox align")
+
+  })
+
+
+
 
 
 

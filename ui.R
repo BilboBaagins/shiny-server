@@ -24,11 +24,14 @@ shinyUI(
       ),
       
       # ----------------------------------
-      # tab panel 2 - Neighborhood Browser
+      # tab panel 2 - Schedule
       tabPanel("Schedule",
       fluidRow(
-        div(leafletOutput("schedule_courseMap", width = "100%", height = "500")),
-        div(DT::dataTableOutput("schedule_courseTable"), style = "height:250px")
+        div(uiOutput("majorScheduleTableTitle"), style="text-align:center; margin-bottom:10px;"),
+        div(uiOutput("majorScheduleTable"), style="text-align:center; margin-bottom:50px;")
+
+        #div(leafletOutput("schedule_courseMap", width = "100%", height = "500")),
+        #div(DT::dataTableOutput("schedule_courseTable"), style = "height:250px")
       )
       ),
       
@@ -39,7 +42,7 @@ shinyUI(
       ),
       
       # ----------------------------------
-      # tab panel 4 - About
+      # tab panel 4 - Players
       tabPanel("Players",
               includeHTML("about.html"),
               shinyjs::useShinyjs(),
@@ -100,10 +103,11 @@ shinyUI(
         )
       ),
       # ----------------------------------
-      # tab panel 6 - Media
-      tabPanel("Media",
+      # tab panel 6 - Results
+      tabPanel("Results",
         fluidRow(
-          div("Media section")
+              div(uiOutput("majorResultsTableTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("majorResultsTable"), style="text-align:center; margin-bottom:50px;")
         )
       ),
       # ----------------------------------
