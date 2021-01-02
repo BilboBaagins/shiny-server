@@ -38,7 +38,10 @@ shinyUI(
       # ----------------------------------
       # tab panel 3 - FedEx Cup
       tabPanel("FedEx Cup",
-      reactableOutput("fedExCup_table", width = "100%")
+        fluidRow(
+          div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
+          div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;")
+        )
       ),
       
       # ----------------------------------

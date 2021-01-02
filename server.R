@@ -87,27 +87,40 @@ shinyServer(function(input, output, session) {
   
   #### Section 0: Load Data
 
-  course_data <- reactive({
-    data <- data.frame(Course = c("Cradockstown", "Naas Golf Club", "Glenlo Abbey"), 
-                       SI = c(72, 72, 71), 
-                       Location = c("Naas", "Naas", "Galway"), 
-                       lat = c(53.58, 53.63, 52.10), 
-                       lon = c(-7.83, -7.32, -6.45)
-                       )
+  # Create Major Schedule Data.
+  # NOTE: I will need to figure out how to do this on the fly as it will be relatively dynamic.
+  # Not like we will have four majors planned months in advance, although that would be ideal.
+  major_schedule_data <- reactive({
+    
+    data <- data.frame(
+      Date = c("2021-01-05", "2021-01-06", "2021-01-07", "2021-01-08"),
+      Course = c("Glenlo Abbey", "Cradockstown", "Naas Golf Club", "St. Helens Bay"), 
+      Location = c("Galway", "Kildare", "Kildare", "Wexford"), 
+      'Defending Champion' = c("---", "Sean Whitson", "---", "Billy Archbold"), 
+      'Previous Major' = c("New Event Location", "2020-07-25", "New Event Location", "2019-08-24"), 
+      'FedEx Cup Points' = c(500, 600, 500, 600), 
+      lat = c(53.30153932321068, 53.20600158084217, 53.2491351564649, 52.232036548098975), 
+      lon = c(-9.099569139421591, -6.638881368349008, -6.644518363898139, -6.3249840192094835),
+      check.names=FALSE
+    )
+
     return(data)
+
   })
 
+  # NOTE: can probably delete this as take it and wrangle it from 'major_results_data'.
   major_history_data <- reactive({
     data <- read.csv("data/history_of_majors.csv", stringsAsFactors=FALSE, check.names=FALSE)
     return(data)
   })
 
+  # Main data.
   major_results_data <- reactive({
     data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
     return(data)
   })
 
-  # FedEx Cup Standings / OWGR (Official World Golf Ranking)
+  # FedEx Cup Standings / OWGR (Official World Golf Ranking).
   owgr_data <- reactive({
     data <- read.csv("data/ogr.csv", stringsAsFactors=FALSE, check.names=FALSE)
     colnames(data) <- gsub("\\.", " ", colnames(data)) %>%
@@ -115,7 +128,7 @@ shinyServer(function(input, output, session) {
     return(data)
   })
 
-  # Players (lookup table)
+  # Players (lookup table).
   players_data <- reactive({
     data <- data.frame(
       Name = c(
@@ -172,6 +185,8 @@ shinyServer(function(input, output, session) {
   })
 
 
+
+
   #### Section 1: Home Page
 
   # Objective of this is to be the one-stop-shop for information.
@@ -184,27 +199,6 @@ shinyServer(function(input, output, session) {
 
 
   #### Section 2: Schedule
-
-  # Create Major Schedule Data.
-  # NOTE: I will need to figure out how to do this on the fly as it will be relatively dynamic.
-  # Not like we will have four majors planned months in advance, although that would be ideal.
-  major_schedule_data <- reactive({
-    
-    data <- data.frame(
-      Date = c("2021-01-05", "2021-01-06", "2021-01-07", "2021-01-08"),
-      Course = c("Glenlo Abbey", "Cradockstown", "Naas Golf Club", "St. Helens Bay"), 
-      Location = c("Galway", "Kildare", "Kildare", "Wexford"), 
-      'Defending Champion' = c("---", "Sean Whitson", "---", "Billy Archbold"), 
-      'Previous Major' = c("New Event Location", "2020-07-25", "New Event Location", "2019-08-24"), 
-      'FedEx Cup Points' = c(500, 600, 500, 600), 
-      lat = c(53.30153932321068, 53.20600158084217, 53.2491351564649, 52.232036548098975), 
-      lon = c(-9.099569139421591, -6.638881368349008, -6.644518363898139, -6.3249840192094835),
-      check.names=FALSE
-    )
-
-    return(data)
-
-  })
 
   # Schedule Table - Title. 
   output$majorScheduleTableTitle <- renderUI({
@@ -224,9 +218,6 @@ shinyServer(function(input, output, session) {
     # Load data.
     data <- major_schedule_data() 
     
-    #data <- data %>% 
-      #select(-lat, -lon)
-
     # Build the table with nested table inside.
     reactable(
       data, 
@@ -294,10 +285,10 @@ shinyServer(function(input, output, session) {
   output$majorScheduleTable <- renderUI({
     
    if(input$isMobile){
-     var_width <- "width:100%;"
+     var_width <- "width:90%;"
    } 
      else{
-       var_width <- "width:1500px;"
+       var_width <- "width:90%;"
      }
 
    div(reactableOutput("majorScheduleTable_temp"), style = var_width, class="reactBox align")
@@ -332,8 +323,20 @@ shinyServer(function(input, output, session) {
     div(createInfoBox(outputValue, labelIcon, labelText), class = "combo-box combo-teal")
   })
 
-  # FedEx Cup / OWGR (Offical World Golf Rankings) Table
-  output$fedExCup_table <- renderReactable({
+  # FedEx Cup Table - Title.
+  output$fedExCupMainTableTitle <- renderUI({
+
+    div(
+      div("FedEx Cup", HTML("<i id='fedExCupMainTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("fedExCupMainTitleID", "FedEx Cup Standings", "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # FedEx Cup Table - temp.
+  output$fedExCupMainTable_temp <- renderReactable({
 
     # Load data. 
     # TO DO:
@@ -350,7 +353,12 @@ shinyServer(function(input, output, session) {
         "average ranking points", 
         "events played", 
         "major wins"
-      )
+      ) %>% 
+      rename("World Ranking Position" = "world ranking position") %>%
+      rename(Name = name) %>%
+      rename("Average Ranking Points" = "average ranking points") %>%
+      rename("Events Played" = "events played") %>%
+      rename("Major Wins" = "major wins")  
 
     # Build the data table.
     reactable(
@@ -359,7 +367,7 @@ shinyServer(function(input, output, session) {
       searchable = TRUE,
       highlight = TRUE,
       columns = list(
-        name = colDef(
+        Name = colDef(
           html = TRUE,
           minWidth = 200,
           maxWidth = 200,
@@ -371,7 +379,7 @@ shinyServer(function(input, output, session) {
             paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
           }
         ),
-        'major wins' = colDef(
+        'Major Wins' = colDef(
           minWidth = 200,
           maxWidth = 200,
           width = 200,
@@ -379,17 +387,17 @@ shinyServer(function(input, output, session) {
             rating_stars(value)
           }
         ),
-        'average ranking points' = colDef(
+        'Average Ranking Points' = colDef(
           align = "left", 
           cell = function(value){
-            width <- paste0(value / max(data$'average ranking points') * 100, "%")
+            width <- paste0(value / max(data$'Average Ranking Points') * 100, "%")
             bar_chart(format(round(value, 2), nsmall = 2), width = width, background = "#e1e1e1")
           }
         ),
-        'events played' = colDef(
+        'Events Played' = colDef(
           align = "left", 
           cell = function(value){
-            width <- paste0(value / max(data$'events played') * 100, "%")
+            width <- paste0(value / max(data$'Events Played') * 100, "%")
             bar_chart(value, width = width, fill = "#fc5185", background = "#e1e1e1")
           }
         )
@@ -398,7 +406,19 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # FedEx Cup Table.
+  output$fedExCupMainTable <- renderUI({
 
+   if(input$isMobile){
+     var_width <- "width:90%;"
+   } 
+     else{
+       var_width <- "width:90%;"
+     }
+
+    div(reactableOutput("fedExCupMainTable_temp"), style = var_width, class="reactBox align")
+
+  })
 
 
 
@@ -1086,10 +1106,10 @@ shinyServer(function(input, output, session) {
   output$majorResultsTable <- renderUI({
     
    if(input$isMobile){
-     var_width <- "width:100%;"
+     var_width <- "width:90%;"
    } 
      else{
-       var_width <- "width:1500px;"
+       var_width <- "width:90%;"
      }
 
    div(reactableOutput("majorResultsTable_temp"), style = var_width, class="reactBox align")
