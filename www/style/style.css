@@ -616,3 +616,9 @@ i:hover{
 .table-title{
 	font-size: 20px;
 }
+
+.firebaseui-page-provider-sign-in, .firebaseui-page-select-tenant {
+	background:white !important;
+	padding:24px;
+	border-radius:3px;
+}

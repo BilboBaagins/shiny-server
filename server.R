@@ -46,9 +46,9 @@ shinyServer(function(input, output, session) {
   f <- FirebaseUI$
     new()$ # instantiate
     set_providers( # define providers
-      email = TRUE#,
-      #google = TRUE,
-      #facebook = TRUE
+      email = TRUE,
+      google = TRUE,
+      facebook = TRUE
     )$
     launch() # launch
 

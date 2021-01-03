@@ -2,6 +2,17 @@ source("global.R")
 source("appParts.R")
 
 shinyUI(
+  div(
+    reqSignout(
+      div(style="position:absolute;",
+        includeHTML("header.html")
+      )
+    ),
+    div(style="position: relative; top: 250px;",
+      useFirebase(), # import dependencies
+      useFirebaseUI() # import UI  
+    ),
+  reqSignin(
     navbarPage(
       title = "paptour.com",
       id = "navBar",
@@ -9,7 +20,7 @@ shinyUI(
       footer = includeHTML("footer.html"),
       fluid = TRUE, 
       collapsible = TRUE,
-      
+
       # ----------------------------------
       # tab panel 1 - Home
       tabPanel("Home",
@@ -26,17 +37,10 @@ shinyUI(
       # ----------------------------------
       # tab panel 2 - Schedule
       tabPanel("Schedule",
-                tags$script(HTML("
-<script src='//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/d3.min.js'></script><script>window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];  window.myWidgetParam.push({id: 11,cityid: '2964180',appid: '20e8405b2d6b3e9b6240f1c0b106ba92',units: 'metric',containerid: 'openweathermap-widget-11',  });  (function() {var script = document.createElement('script');script.async = true;script.charset = 'utf-8';script.src = '//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js';var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(script, s);  })();</script>
-
-          ")),
-      fluidRow(
-        div(uiOutput("majorScheduleTableTitle"), style="text-align:center; margin-bottom:10px;"),
-        div(uiOutput("majorScheduleTable"), style="text-align:center; margin-bottom:50px;")
-
-        #div(leafletOutput("schedule_courseMap", width = "100%", height = "500")),
-        #div(DT::dataTableOutput("schedule_courseTable"), style = "height:250px")
-      )
+        fluidRow(
+          div(uiOutput("majorScheduleTableTitle"), style="text-align:center; margin-bottom:10px;"),
+          div(uiOutput("majorScheduleTable"), style="text-align:center; margin-bottom:50px;")
+        )
       ),
       
       # ----------------------------------
@@ -120,12 +124,12 @@ shinyUI(
       # ----------------------------------
       # tab panel 7 - Admin
       tabPanel("Admin",
-      useFirebase(), # import dependencies
-      useFirebaseUI(), # import UI
       fluidRow(
         div(uiOutput("admin_uploadResults")),
         div(uiOutput("signoutButton"))
       )
     )
-
-))
+    )
+  )
+)
+)
