@@ -499,9 +499,9 @@ shinyServer(function(input, output, session) {
         ),
         Player = colDef(
           html = TRUE,
-          minWidth = 200,
-          maxWidth = 200,
-          width = 200,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
           cell = function(value) {
             # Use player_data as lookup table to grab alias for photos. 
             temp <- players_data %>% 
