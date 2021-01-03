@@ -233,50 +233,63 @@ shinyServer(function(input, output, session) {
       details = function(index) {
         
         map_data <- data[index, ]
-        
-        htmltools::div(style = "padding-top: 26px; padding-left: 100px; padding-right: 100px; padding-bottom: 100px;",
 
-          leaflet() %>% 
-            setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
-            addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
-            addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
-            addProviderTiles("CartoDB.Positron", group = "Greyscale") %>% 
-            addMarkers(
-              lat = map_data$lat, 
-              lng = map_data$lon,
-              label = map_data$Course,
-              popup = paste0(
-                "Course <b>", map_data$Course, "</b><br>", 
-                "Location <b>", map_data$Location, "</b><br>",
-                "Defending Champion <b>", map_data$'Defending Champion', "</b><br>",
-                "Previous Major <b>", map_data$'Previous Major', "</b><br>",
-                "FedEx Cup Points <b>", map_data$'FedEx Cup Points', "</b><br>"
-              )
-            ) %>% 
-            addFullscreenControl() %>% 
-            addMeasure(
-              position = "bottomleft",
-              primaryLengthUnit = "feet",
-              secondaryLengthUnit = "meters",
-              activeColor = "#3D535D",
-              completedColor = "#7D4479"
-            ) %>% 
-            # Reset map view to original render.
-            addEasyButton(easyButton(
-                icon="fas fa-location-arrow",
-                title="Reset View",
-                onClick=JS(paste0("
-                    function(btn, map) {
-                      map.setView([", map_data$lat,", ", map_data$lon,"], 16);
-                    }
-                    ")))) %>%
-            # Layers control
-            addLayersControl(
-              baseGroups = c("Satellite", "OpenStreetMap", "Greyscale"),
-              #overlayGroups = c("Quakes", "Outline"),
-              options = layersControlOptions(collapsed = TRUE)
+        htmltools::div(
+          htmltools::div(style = "padding-top: 26px; padding-left: 100px; padding-right: 100px;",
+
+            tags$iframe(
+              seamless = "seamless",
+              src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
+              width = "80%",
+              height = 250,
+              style = "border:0px;"
             )
 
+          ),
+          htmltools::div(style = "padding-top: 0px; padding-left: 100px; padding-right: 100px; padding-bottom: 100px;",
+
+            leaflet() %>% 
+              setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
+              addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
+              addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
+              addProviderTiles("CartoDB.Positron", group = "Greyscale") %>% 
+              addMarkers(
+                lat = map_data$lat, 
+                lng = map_data$lon,
+                label = map_data$Course,
+                popup = paste0(
+                  "Course <b>", map_data$Course, "</b><br>", 
+                  "Location <b>", map_data$Location, "</b><br>",
+                  "Defending Champion <b>", map_data$'Defending Champion', "</b><br>",
+                  "Previous Major <b>", map_data$'Previous Major', "</b><br>",
+                  "FedEx Cup Points <b>", map_data$'FedEx Cup Points', "</b><br>"
+                )
+              ) %>% 
+              addFullscreenControl() %>% 
+              addMeasure(
+                position = "bottomleft",
+                primaryLengthUnit = "feet",
+                secondaryLengthUnit = "meters",
+                activeColor = "#3D535D",
+                completedColor = "#7D4479"
+              ) %>% 
+              # Reset map view to original render.
+              addEasyButton(easyButton(
+                  icon="fas fa-location-arrow",
+                  title="Reset View",
+                  onClick=JS(paste0("
+                      function(btn, map) {
+                        map.setView([", map_data$lat,", ", map_data$lon,"], 16);
+                      }
+                      ")))) %>%
+              # Layers control
+              addLayersControl(
+                baseGroups = c("Satellite", "OpenStreetMap", "Greyscale"),
+                #overlayGroups = c("Quakes", "Outline"),
+                options = layersControlOptions(collapsed = TRUE)
+              )
+
+          )
         )
       }
     )
