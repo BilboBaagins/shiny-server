@@ -342,7 +342,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -365,7 +365,7 @@ shinyServer(function(input, output, session) {
         "events played", 
         "major wins"
       ) %>% 
-      rename("World Ranking Position" = "world ranking position") %>%
+      rename("Rank" = "world ranking position") %>%
       rename(Name = name) %>%
       rename("Average Ranking Points" = "average ranking points") %>%
       rename("Events Played" = "events played") %>%
@@ -378,7 +378,7 @@ shinyServer(function(input, output, session) {
       searchable = TRUE,
       highlight = TRUE,
       columns = list(
-        'World Ranking Position' = colDef(
+        'Rank' = colDef(
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
@@ -459,7 +459,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -566,7 +566,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -667,7 +667,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -767,7 +767,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -853,7 +853,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -943,7 +943,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 60
     } 
       else{
         var_width <- 200
@@ -1098,7 +1098,7 @@ shinyServer(function(input, output, session) {
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 50
+      var_width_rank <- 70
     } 
       else{
         var_width <- 200
