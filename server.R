@@ -1102,7 +1102,8 @@ shinyServer(function(input, output, session) {
       rename("Median Handicap" = Median_Handicap) %>%
       rename("Mean Score" = Mean_Score) %>%
       rename("Median Score" = Median_Score) %>%
-      select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      select(Major, Date, Venue, Field, Winner, Score, Handicap)
 
     # Convert to date field.
     major_results_data$Date <- lubridate::dmy(major_results_data$Date)
