@@ -123,6 +123,8 @@ shinyServer(function(input, output, session) {
   # FedEx Cup Standings / OWGR (Official World Golf Ranking).
   owgr_data <- reactive({
     data <- read.csv("data/ogr.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    data$WORLD.RANKING.POSITION <- gsub("[[:alpha:]]", "", data$WORLD.RANKING.POSITION) %>%
+      as.numeric()
     colnames(data) <- gsub("\\.", " ", colnames(data)) %>%
       tolower()
     return(data)
@@ -338,6 +340,15 @@ shinyServer(function(input, output, session) {
   # FedEx Cup Table - temp.
   output$fedExCupMainTable_temp <- renderReactable({
 
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
     # Load data. 
     # TO DO:
     # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
@@ -367,6 +378,12 @@ shinyServer(function(input, output, session) {
       searchable = TRUE,
       highlight = TRUE,
       columns = list(
+        'World Ranking Position' = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "left"
+        ),
         Name = colDef(
           html = TRUE,
           minWidth = 200,
@@ -478,6 +495,7 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          align = "left"
         ),
         Player = colDef(
           html = TRUE,
@@ -593,6 +611,7 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          align = "left"
         ),
         Player = colDef(
           html = TRUE,
@@ -692,6 +711,7 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          align = "left"
         ),
         Player = colDef(
           html = TRUE,
@@ -777,6 +797,7 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          align = "left"
         ),
         Player = colDef(
           html = TRUE,
@@ -866,6 +887,7 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          align = "left"
         ),
         Player = colDef(
           html = TRUE,
@@ -959,6 +981,7 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          align = "left"
         ),
         Player = colDef(
           html = TRUE,
@@ -1071,16 +1094,16 @@ shinyServer(function(input, output, session) {
     # Convert to date field.
     major_results_data$Date <- lubridate::dmy(major_results_data$Date)
 
-#    players_data <- players_data()
 
-#    if(input$isMobile){
-#      var_width <- 150
-#      var_width_rank <- 50
-#    } 
-#      else{
-#        var_width <- 200
-#        var_width_rank <- 120
-#      }
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 50
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
 
     # Build the table with nested table inside.
     reactable(
@@ -1088,6 +1111,14 @@ shinyServer(function(input, output, session) {
       filterable = TRUE,
       searchable = TRUE,
       highlight = TRUE,
+      columns = list(
+        Major = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "center"
+        )
+      ),
       details = function(index) {
         event_data <- data[data$Major == major_results_data$Major[index], ]
         htmltools::div(style = "padding: 16px",
