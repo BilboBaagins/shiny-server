@@ -48,7 +48,8 @@ shinyServer(function(input, output, session) {
     set_providers( # define providers
       email = TRUE,
       google = TRUE,
-      facebook = TRUE
+      facebook = TRUE,
+      twitter = TRUE
     )$
     launch() # launch
 
