@@ -8,7 +8,8 @@ shinyUI(
         includeHTML("header.html")
       )
     ),
-    div(style="position: relative; top: 250px;",
+    #div(style="position: relative; top:250px;",
+    div(class="mobile_firebase_css",
       useFirebase(), # import dependencies
       useFirebaseUI() # import UI  
     ),
