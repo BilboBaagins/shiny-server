@@ -55,6 +55,28 @@ shinyServer(function(input, output, session) {
 
 
 
+    # Get the logged-in user info.
+    user <- reactive({
+      f$get_signed_in() # get logged in user info
+      print(user)
+    })
+
+    observeEvent( f$get_signed_in(), {
+      user <- f$get_signed_in() # get logged in user info
+      #print(user)
+
+      print(f$get_signed_in()$response$displayName)
+
+      if( is.null(f$get_signed_in()$user$displayName) || f$get_signed_in()$response$displayName %in% "Billy Archbold" ){
+
+        shinyjs::disable("admin_uploadResults")
+
+      }
+
+    })
+
+
+
   #----- Browser Check Logic -----
   # Observe what browser is being used to run application.
   # If Firefox or Edge are detected, display shinyalert advising 
@@ -385,24 +407,34 @@ shinyServer(function(input, output, session) {
       rename("Events Played" = "events played") %>%
       rename("Major Wins" = "major wins")  
 
+
+    # Sticky column CSS.
+    #sticky_style <- list(position = "sticky", left = 0, zIndex = 1, background="#fff")
+    
     # Build the data table.
     reactable(
       data,
       filterable = TRUE,
-      searchable = TRUE,
+      searchable = FALSE,
       highlight = TRUE,
+      pagination = FALSE,
+      height = 500,
       columns = list(
         'Rank' = colDef(
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          class = "sticky-col",
+          headerClass = "sticky-col",
           align = "left"
         ),
         Name = colDef(
           html = TRUE,
           minWidth = 200,
           maxWidth = 200,
-          width = 200,
+          width = 150,
+          class = "sticky-col",
+          headerClass = "sticky-col",
           cell = function(value) {
             # Use player_data as lookup table to grab alias for photos. 
             temp <- players_data %>% 
@@ -1104,7 +1136,7 @@ shinyServer(function(input, output, session) {
       rename("Mean Score" = Mean_Score) %>%
       rename("Median Score" = Median_Score) %>%
       #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
-      select(Major, Date, Venue, Field, Winner, Score, Handicap)
+      select(Major, Winner, Score, Handicap, Date, Venue, Field)
 
     # Convert to date field.
     major_results_data$Date <- lubridate::dmy(major_results_data$Date)
@@ -1192,9 +1224,6 @@ shinyServer(function(input, output, session) {
 
   # Upload Results.
   output$admin_uploadResults <- renderUI({
-
-    f$req_sign_in() # require sign in
-
     actionButton(
       inputId = "admin_uploadResults_input",
       label = "Upload Results"

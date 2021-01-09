@@ -4,8 +4,7 @@ source("appParts.R")
 shinyUI(
   div(
     reqSignout(
-      div(style="position:absolute;",
-        includeHTML("header.html")
+      div(class="bgimg", style="position:absolute; width:100%;"
       )
     ),
     #div(style="position: relative; top:250px;",
