@@ -1426,12 +1426,6 @@ shinyServer(function(input, output, session) {
 
 
 
-  if (!interactive()) {
-    session$onSessionEnded(function() {
-      stopApp()
-      q("no")
-    })
-  }
   
 
 # End App.
