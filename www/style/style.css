@@ -648,8 +648,14 @@ i:hover{
 @media only screen and (min-width: 768px) {
 	.mobile_firebase_css{
 		position: relative; 
-		top:0px;
+		top:250px;
 	}
+	.bgimg {
+		background-image: url('../homeImage.png');
+		min-height: 100%;
+		background-position: center;
+		background-size: cover;
+	  }
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
@@ -658,6 +664,12 @@ i:hover{
 		position: relative; 
 		top:250px;
 	}
+	.bgimg {
+		background-image: url('../homeImage.png');
+		min-height: 100%;
+		background-position: center;
+		background-size: cover;
+	  }
 }
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */
@@ -666,6 +678,12 @@ i:hover{
 		position: relative; 
 		top:250px;
 	}
+	.bgimg {
+		background-image: url('../homeImage.png');
+		min-height: 100%;
+		background-position: center;
+		background-size: cover;
+	  }
 }
 
 .sticky-col {
@@ -675,12 +693,6 @@ i:hover{
 	zIndex: 1;
 }
 
-.bgimg {
-	background-image: url('../homeImage.png');
-    min-height: 100%;
-    background-position: center;
-    background-size: cover;
-  }
 
 .loader {
     border: 5px solid #f3f3f3;
