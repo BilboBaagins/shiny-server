@@ -24,14 +24,15 @@ shinyUI(
       # ----------------------------------
       # tab panel 1 - Home
       tabPanel("Home",
-              includeHTML("home.html"),
-              tags$script(src = "plugins/scripts.js"),
-              tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
-              tags$head(
-                tags$link(rel = "icon", 
-                          type = "image/png", 
-                          href = "favicon.png")
-              )
+        shinyjs::useShinyjs(),
+        includeHTML("home.html"),
+        tags$script(src = "plugins/scripts.js"),
+        tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
+        tags$head(
+          tags$link(rel = "icon", 
+                    type = "image/png", 
+                    href = "favicon.png")
+        )
       ),
       
       # ----------------------------------
@@ -124,6 +125,7 @@ shinyUI(
       # ----------------------------------
       # tab panel 7 - Admin
       tabPanel("Admin",
+      shinyjs::useShinyjs(),
       fluidRow(
         div(uiOutput("admin_uploadResults")),
         div(uiOutput("signoutButton"))

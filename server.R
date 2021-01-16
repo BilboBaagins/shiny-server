@@ -2,6 +2,7 @@
 
 # Source global script that houses libraries and defines functions used throughout app.
 source("global.R")
+source("mongoDB.R")
 
 
   #### Table of Contents
@@ -55,25 +56,49 @@ shinyServer(function(input, output, session) {
 
 
 
-    # Get the logged-in user info.
-    user <- reactive({
-      f$get_signed_in() # get logged in user info
-      print(user)
-    })
+#    # Get the logged-in user info.
+#    user <- reactive({
+#      f$get_signed_in() # get logged in user info
+#      print(user)
+#    })
 
-    observeEvent( f$get_signed_in(), {
-      user <- f$get_signed_in() # get logged in user info
-      #print(user)
 
-      print(f$get_signed_in()$response$displayName)
+  observeEvent( f$get_signed_in(), {
+    
+    # Get logged in user info.
+    user <- f$get_signed_in()$response$displayName
 
-      if( is.null(f$get_signed_in()$user$displayName) || f$get_signed_in()$response$displayName %in% "Billy Archbold" ){
+    print(user)
 
-        shinyjs::disable("admin_uploadResults")
+    print( f$get_signed_in()$response$email )
 
-      }
+    print(user == "BilboBaagins")
 
-    })
+    print(user != "BilboBaagins")
+
+  })
+
+
+  # Collapse the navbar menu after li selection.
+  observeEvent(input$navBar, {
+
+    # Get logged in user info.
+    user <- f$get_signed_in()$response$displayName
+
+    print(input$navBar)
+
+    if( is.null(user) || user == "BilboBaagins" ){
+
+      #shinyjs::enable("admin_uploadResults_input")
+
+      #toggleState("admin_uploadResults")
+
+      print("Billybillybilly")
+
+    
+    }
+
+  })
 
 
 
@@ -110,6 +135,16 @@ shinyServer(function(input, output, session) {
   
   #### Section 0: Load Data
 
+  user_access_levels <- reactive({
+    data <- data.frame(
+      User = c(
+        "BilboBaagins",
+        "archbold.billy@gmail.com",
+        "tobrien5527@gmail.com"
+      )
+    )
+  })
+
   # Create Major Schedule Data.
   # NOTE: I will need to figure out how to do this on the fly as it will be relatively dynamic.
   # Not like we will have four majors planned months in advance, although that would be ideal.
@@ -139,8 +174,26 @@ shinyServer(function(input, output, session) {
 
   # Main data.
   major_results_data <- reactive({
-    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    
+    # Connect to your MongoDB instance.
+    con <- mongo(
+      collection = "data",
+      db = "major_results",
+      url = url,
+      verbose = FALSE,
+      options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    # Disconnect
+    rm(con)
+
+    #data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    
     return(data)
+
   })
 
   # FedEx Cup Standings / OWGR (Official World Golf Ranking).
@@ -1224,10 +1277,28 @@ shinyServer(function(input, output, session) {
 
   # Upload Results.
   output$admin_uploadResults <- renderUI({
-    actionButton(
-      inputId = "admin_uploadResults_input",
-      label = "Upload Results"
-    )
+
+    # Get logged in user info.
+    user <- f$get_signed_in()$response$displayName
+    email <- f$get_signed_in()$response$email
+
+    user_access_levels <- user_access_levels()
+
+    if( is.null(user) || user %in% user_access_levels || email %in% user_access_levels ){
+
+      actionButton(
+        inputId = "admin_uploadResults_input",
+        label = "Upload Results"
+      )
+    
+    }else{
+      shinyjs::disabled(
+        actionButton(
+          inputId = "admin_uploadResults_input",
+          label = "Upload Results"
+        )
+      )
+    }
   })
 
   # Sign-out button.
