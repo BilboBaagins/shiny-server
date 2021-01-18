@@ -13,8 +13,19 @@ shinyUI(
       useFirebaseUI() # import UI  
     ),
   reqSignin(
+    tagList(
+    tags$head(tags$style(HTML("
+                           .navbar-nav {
+                           float: none !important;
+                           }
+                           .navbar-nav > li:nth-child(8) {
+                           float: right;
+                           }
+                           ")))),
     navbarPage(
       title = "paptour.com",
+      selected = "Home",
+      position = c("fixed-top"),
       id = "navBar",
       theme = "style/style.css",
       footer = includeHTML("footer.html"),
@@ -26,6 +37,7 @@ shinyUI(
       tabPanel("Home",
         shinyjs::useShinyjs(),
         includeHTML("home.html"),
+        tags$style(type="text/css", "padding-top: 70px;"),
         tags$script(src = "plugins/scripts.js"),
         tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
         tags$head(
@@ -38,6 +50,7 @@ shinyUI(
       # ----------------------------------
       # tab panel 2 - Schedule
       tabPanel("Schedule",
+        div(class="navbar-buffer"),
         fluidRow(
           div(uiOutput("majorScheduleTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("majorScheduleTable"), style="text-align:center; margin-bottom:50px;")
@@ -47,6 +60,7 @@ shinyUI(
       # ----------------------------------
       # tab panel 3 - FedEx Cup
       tabPanel("FedEx Cup",
+        div(class="navbar-buffer"),
         fluidRow(
           div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;")
@@ -56,18 +70,18 @@ shinyUI(
       # ----------------------------------
       # tab panel 4 - Players
       tabPanel("Players",
-              includeHTML("about.html"),
-              shinyjs::useShinyjs(),
-              tags$head(
-                  tags$link(rel = "stylesheet", 
-                            type = "text/css", 
-                            href = "plugins/carousel.css"),
-                  tags$script(src = "plugins/holder.js")
-              ),
-              tags$style(type="text/css",
-                          ".shiny-output-error { visibility: hidden; }",
-                          ".shiny-output-error:before { visibility: hidden; }"
-              )
+        includeHTML("about.html"),
+        shinyjs::useShinyjs(),
+        tags$head(
+            tags$link(rel = "stylesheet", 
+                      type = "text/css", 
+                      href = "plugins/carousel.css"),
+            tags$script(src = "plugins/holder.js")
+        ),
+        tags$style(type="text/css",
+                    ".shiny-output-error { visibility: hidden; }",
+                    ".shiny-output-error:before { visibility: hidden; }"
+        )
       ),
       # ----------------------------------
       # tab panel 5 - Stats
@@ -80,6 +94,7 @@ shinyUI(
             tags$script(src = "plugins/holder.js")
         ),
         isMobile(),
+        div(class="navbar-buffer"),
         fluidPage(
           fluidRow(
             column(6, 
@@ -117,6 +132,7 @@ shinyUI(
       # ----------------------------------
       # tab panel 6 - Results
       tabPanel("Results",
+        div(class="navbar-buffer"),
         fluidRow(
               div(uiOutput("majorResultsTableTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("majorResultsTable"), style="text-align:center; margin-bottom:50px;")
@@ -126,9 +142,17 @@ shinyUI(
       # tab panel 7 - Admin
       tabPanel("Admin",
       shinyjs::useShinyjs(),
+      div(class="navbar-buffer"),
       fluidRow(
-        div(uiOutput("admin_uploadResults")),
-        div(uiOutput("signoutButton"))
+        div(uiOutput("admin_uploadResults"))#,
+        #div(uiOutput("signoutButton"))
+      )
+    ),
+    tabPanel(
+      actionButton(#<i class='fa fa-cloud-download' style='font-size: 32px; margin: 5px; color: #00A0AF;'></i>
+        "signout",
+        HTML("<i class='fas fa-sign-out-alt' style='font-size:16px;'></i> Sign Out"),
+        style="padding:0px;border:0px;"
       )
     )
     )

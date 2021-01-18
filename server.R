@@ -1209,7 +1209,7 @@ shinyServer(function(input, output, session) {
     reactable(
       major_results_data, 
       filterable = TRUE,
-      searchable = TRUE,
+      searchable = FALSE,
       highlight = TRUE,
       columns = list(
         Major = colDef(
@@ -1258,23 +1258,6 @@ shinyServer(function(input, output, session) {
 
   #### Section 9: Admin
 
-  # List of golfers.
-  golfers <- reactive({
-    df <- data.frame(Name = c(
-      "Billy Archbold",
-      "Tiarnan O'Brien",
-      "Gearoid Comber",
-      "Stephen Piggott",
-      "Craig Hyland",
-      "Oisin Tyrell",
-      "Dinny Courtney",
-      "Luke Smith",
-      "Sean Whitson",
-      "Seany Mac",
-      "Dave McGrath"
-    ))
-  })
-
   # Upload Results.
   output$admin_uploadResults <- renderUI({
 
@@ -1301,14 +1284,14 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # Sign-out button.
-  output$signoutButton <- renderUI({
-    f$req_sign_in()
-    
-    div(style = "padding:8px;", 
-        tags$li(actionButton("signout", "Sign out", class = "btn-danger", style = "color:white;"), class = "dropdown"))
-    
-  })
+  ## Sign-out button.
+  #output$signoutButton <- renderUI({
+  #  f$req_sign_in()
+  #  
+  #  div(style = "padding:8px;", 
+  #      tags$li(actionButton("signout", "Sign out", class = "btn-danger", style = "color:white;"), class = "dropdown"))
+  #  
+  #})
 
   # Sign user out.
   observeEvent(input$signout,{
@@ -1323,6 +1306,9 @@ shinyServer(function(input, output, session) {
 
   # Upload Results Modal - Add.
   uploadResults <- function(failed = FALSE) {
+
+    # Get golfers. 
+    golfers <- players_data()
 
     # Create modal UI.
     modalDialog(
@@ -1363,7 +1349,7 @@ shinyServer(function(input, output, session) {
             "Golfer",
             width = 175,
             multiple = FALSE,
-            choices = golfers()
+            choices = golfers
         ), style = "margin-left: 15px;display: inline-block;vertical-align:top;"),
         div( 
           numericInput(

@@ -11,5 +11,5 @@ pwd <- "JliMaQpXzTKYFCGe"
 url <- paste0("mongodb+srv://", user, ":", pwd, "@cluster0.4yzge.mongodb.net/")
 
 # For a successful connection, need to ensure IP is whitelisted.
-# Find it in: MongoDB > Network Access
+# Find it in: [project_name] > Network Access
 
