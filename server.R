@@ -139,6 +139,8 @@ shinyServer(function(input, output, session) {
     data <- data.frame(
       User = c(
         "BilboBaagins",
+        "Bilbo Baagins",
+        "bbaagins@gmail.com",
         "archbold.billy@gmail.com",
         "tobrien5527@gmail.com"
       )
@@ -175,6 +177,9 @@ shinyServer(function(input, output, session) {
   # Main data.
   major_results_data <- reactive({
     
+    # Unsuccessful connections may be result of IP address not being whitelisted. 
+    # To fix, navigate to [project_name] > Network Access
+
     # Connect to your MongoDB instance.
     con <- mongo(
       collection = "data",
@@ -535,6 +540,139 @@ shinyServer(function(input, output, session) {
     div(reactableOutput("fedExCupMainTable_temp"), style = var_width, class="reactBox align")
 
   })
+
+  # OWGR Infographic
+  output$owgrInfogrphic <- renderUI({
+
+    div(style = "margin:50px;",
+      HTML('    
+        <div class="row example-centered">
+            <div class="col-md-12 example-title">
+                <h2>Rankings Explained</h2>
+            </div>
+            <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2">
+                <ul class="timeline timeline-centered">
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Note 1)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Rankings are calculated based on results over the last 8 major championships.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Note 2)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Players cant recieve a negative ranking. The lowest ranking you can have is 0.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item period">
+                        <div class="timeline-info"></div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h2 class="timeline-title">Calculation</h2>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 1)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Players are deducted 0.5 ranking points on entry</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 2)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Points are awarded to top 6 places as follows; <br>
+                            <table style="width:70%">
+                              <tr>
+                                <th>Place</th>
+                                <th>Points</th>
+                              </tr>
+                              <tr>
+                                <td>1st</td>
+                                <td>6.5</td>
+                              </tr>
+                              <tr>
+                                <td>2nd</td>
+                                <td>5</td>
+                              </tr>
+                              <tr>
+                                <td>3rd</td>
+                                <td>4</td>
+                              </tr>
+                              <tr>
+                                <td>4th</td>
+                                <td>3</td>
+                              </tr>
+                              <tr>
+                                <td>5th</td>
+                                <td>2</td>
+                              </tr>
+                              <tr>
+                                <td>6th</td>
+                                <td>1</td>
+                              </tr>
+                            </table>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 3)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Previouly awarded points are weighted based on 
+                            recency
+                            </p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 4)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Awarded points are worth full value for the most 
+                            recent major and reduce 10% by every subsequent major until 
+                            they fall out of the rolling 8 major calculation
+                            </p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 4)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Finally, the players recency weighted stableford score over the 
+                              rolling 8 major window is summed and divided by 100, then added
+                              to the players OWGR score. This is intended to reward high-scoring 
+                              esults.
+                          </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>'
+    ))
+
+  })
+
+
+
+
+
 
 
 
@@ -1267,7 +1405,12 @@ shinyServer(function(input, output, session) {
 
     user_access_levels <- user_access_levels()
 
-    if( is.null(user) || user %in% user_access_levels || email %in% user_access_levels ){
+    # print("user")
+    # print(user)
+    # print("email")
+    # print(email)
+
+    if( is.null(user) || user %in% user_access_levels$User || email %in% user_access_levels$User ){
 
       actionButton(
         inputId = "admin_uploadResults_input",
@@ -1295,7 +1438,11 @@ shinyServer(function(input, output, session) {
 
   # Sign user out.
   observeEvent(input$signout,{
+    
+    updateTabsetPanel(session, "navBar", selected = "Home")
+
     f$sign_out()
+
   })
 
   # Listener - admin_uploadResults_input.
@@ -1478,6 +1625,17 @@ shinyServer(function(input, output, session) {
   
                    
   })
+
+
+
+
+
+
+
+
+
+
+
 
 
 

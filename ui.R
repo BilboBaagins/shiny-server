@@ -40,6 +40,7 @@ shinyUI(
         tags$style(type="text/css", "padding-top: 70px;"),
         tags$script(src = "plugins/scripts.js"),
         tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
+
         tags$head(
           tags$link(rel = "icon", 
                     type = "image/png", 
@@ -63,7 +64,9 @@ shinyUI(
         div(class="navbar-buffer"),
         fluidRow(
           div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
-          div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;")
+          div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;"),
+          div(style='height:60px;'),
+          uiOutput('owgrInfogrphic')
         )
       ),
       
@@ -149,7 +152,8 @@ shinyUI(
       )
     ),
     tabPanel(
-      actionButton(#<i class='fa fa-cloud-download' style='font-size: 32px; margin: 5px; color: #00A0AF;'></i>
+      actionButton(
+        #<i class='fa fa-cloud-download' style='font-size: 32px; margin: 5px; color: #00A0AF;'></i>
         "signout",
         HTML("<i class='fas fa-sign-out-alt' style='font-size:16px;'></i> Sign Out"),
         style="padding:0px;border:0px;"
