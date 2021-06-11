@@ -632,8 +632,11 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Previouly awarded points are weighted based on 
-                            recency
+                            <p>Previouly awarded points from past majors are weighted based on 
+                            recency. 
+                            Points awarded for the most recent major are worth full value while 
+                            points awarded for each preceding major reduce by 10% until fall out 
+                            of the rolling 8 major calculation.
                             </p>
                         </div>
                     </li>
@@ -643,15 +646,13 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Awarded points are worth full value for the most 
-                            recent major and reduce 10% by every subsequent major until 
-                            they fall out of the rolling 8 major calculation
+                            <p>
                             </p>
                         </div>
                     </li>
                     <li class="timeline-item">
                         <div class="timeline-info">
-                            <span>Step 4)</span>
+                            <span>Step 5)</span>
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
@@ -666,6 +667,128 @@ shinyServer(function(input, output, session) {
             </div>
         </div>'
     ))
+
+  })
+
+
+
+
+
+
+
+  #### Section 4: OWGR
+  output$owgrTimeseries <- renderPlotly({
+
+    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    data$Events <- 1
+
+    # Set up constants.
+    N <- 8
+    COST <- 0.5
+    weights <- (10:2) / 10.5
+
+    temp <- data.frame()
+
+    # For loop to do backfill.
+    for(j in N:max(data$Major)){
+
+        RANKING_PERIOD <- j
+
+        # Subset data to the most recent 10 majors. 
+        owgr <- data %>% 
+            #filter( Major %in% (max(data$Major)-(N-1)):max(data$Major) )
+            filter( Major %in% ( (j-(N-1)):j ))
+
+        # Assign points based on finishing position. 
+        owgr <- owgr %>% 
+            group_by(Major) %>% 
+            # Handle playoff.
+            mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
+            data.frame()
+
+        # Apply recency weighting to past N majors.
+        owgr$Weighted_Score <- NA
+        i <- 1
+        for(Major in unique(owgr$Major) ){
+            owgr[owgr$Major %in% Major,]$Weighted_Score <- owgr[owgr$Major %in% Major,]$Score * weights[i]
+            i <- i + 1
+        }
+
+        pts_tbl <- data.frame(Pos = 1:6, Pts = c(6.5, 5:1))
+
+        owgr <- left_join(owgr, pts_tbl, by=c("Pos" = "Pos"))
+
+        owgr[is.na(owgr$Pts),]$Pts <- 0
+
+        # Apply recency weighting to past N majors No. Events.
+        owgr$Weighted_Pts <- NA
+        i <- 1
+        for(Major in unique(owgr$Major) ){
+            owgr[owgr$Major %in% Major,]$Weighted_Pts <- owgr[owgr$Major %in% Major,]$Pts * weights[i]
+            i <- i + 1
+        }
+
+        x <- owgr %>% 
+            group_by(Player) %>%
+            summarise(
+                Ranking_Period = RANKING_PERIOD,
+                Events = n(),
+                Score_sum = sum(Score),
+                Weighted_Score_sum = sum(Weighted_Score),
+                Pts_sum = sum(Pts), 
+                Weighted_Pts_sum = sum(Weighted_Pts)
+            ) %>% data.frame() %>% 
+            arrange(-Weighted_Pts_sum)
+
+        x$Cost <- x$Events * COST
+        x$Add <- x$Weighted_Score_sum/100
+
+        x$OWGR <- x$Weighted_Pts_sum - x$Cost + x$Add
+        x$OWGR <- ifelse(x$OWGR < 0, 0, x$OWGR)
+        x <- x[order(-x$OWGR),]
+        
+
+        temp <- rbind(temp, x)
+
+    }
+
+
+
+    major_dates <- data.frame(unique(data[c("Major", "Date")]))
+
+    temp <- left_join(temp, major_dates[c("Major", "Date")], by = c("Ranking_Period" = "Major"))
+    temp$Date <- lubridate::dmy(temp$Date)
+
+    # Plot
+    p <- temp %>%
+      ggplot( aes(x=reorder(paste0("Major ", Ranking_Period, " (", lubridate::year(Date), ")"), Ranking_Period), y=OWGR, group=Player, color=Player)) +
+        geom_line() +
+        geom_point() +
+        #scale_color_viridis(discrete = TRUE) +
+        ggtitle("OWGR Timeseries") +
+        theme_ipsum() +
+        ylab("OWGR") +
+        xlab("Major Timeline") +
+        theme(axis.text.x = element_text(angle = 20, vjust = 0.5, hjust=1))
+    # Turn it interactive with ggplotly
+    p <- ggplotly(p)
+
+    p <- plotly_build(p) 
+
+    legend_hide <- data.frame()
+    for(i in 1:length(p$x$data)){
+        legend_hide <- rbind(legend_hide, tail(p$x$data[[i]]$y, 1))
+        colnames(legend_hide)[1] <- "Value"
+        p$x$data[[i]]$visible <- "legendonly"
+    }
+
+    for(i in 1:length(p$x$data)){
+        if( tail(p$x$data[[i]]$y, 1) %in% top_n(legend_hide, 5)$Value ){
+            p$x$data[[i]]$visible <- NULL
+        }
+    }
+
+    return(p) 
 
   })
 
@@ -1460,9 +1583,10 @@ shinyServer(function(input, output, session) {
     # Create modal UI.
     modalDialog(
       div(
-        tags$i(class = "fal fa-file-plus fa-fw"),
+        tags$i(class = "fas fa-cloud-upload-alt"),
         "Add New Major Result",
-        class = "title-modal"
+        class = "title-modal",
+        style="font-size:20px;margin-bottom:40px;"
       ),
       div(
         dateInput(
@@ -1533,7 +1657,7 @@ shinyServer(function(input, output, session) {
       footer = tagList(
         actionButton("cancelUploadResults", "Cancel"),
         actionButton("uploadResults", "Add Results")
-      ), size = 'm'
+      ), size = 'm', easyClose = TRUE
     )
   }
 

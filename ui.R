@@ -18,7 +18,7 @@ shinyUI(
                            .navbar-nav {
                            float: none !important;
                            }
-                           .navbar-nav > li:nth-child(8) {
+                           .navbar-nav > li:nth-child(9) {
                            float: right;
                            }
                            ")))),
@@ -65,13 +65,22 @@ shinyUI(
         fluidRow(
           div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;"),
-          div(style='height:60px;'),
+          div(style='height:60px;')
+        )
+      ),
+            
+      # ----------------------------------
+      # tab panel 4 - OWGR Rankings
+      tabPanel("OWGR",
+        div(class="navbar-buffer"),
+        fluidRow(
+          div(plotlyOutput("owgrTimeseries", width="80%", height="600px")),
           uiOutput('owgrInfogrphic')
         )
       ),
       
       # ----------------------------------
-      # tab panel 4 - Players
+      # tab panel 5 - Players
       tabPanel("Players",
         includeHTML("about.html"),
         shinyjs::useShinyjs(),
@@ -87,7 +96,7 @@ shinyUI(
         )
       ),
       # ----------------------------------
-      # tab panel 5 - Stats
+      # tab panel 6 - Stats
       tabPanel("Stats",
         shinyjs::useShinyjs(),
         tags$head(
@@ -133,7 +142,7 @@ shinyUI(
         )
       ),
       # ----------------------------------
-      # tab panel 6 - Results
+      # tab panel 7 - Results
       tabPanel("Results",
         div(class="navbar-buffer"),
         fluidRow(
@@ -142,23 +151,24 @@ shinyUI(
         )
       ),
       # ----------------------------------
-      # tab panel 7 - Admin
+      # tab panel 8 - Admin
       tabPanel("Admin",
       shinyjs::useShinyjs(),
       div(class="navbar-buffer"),
       fluidRow(
-        div(uiOutput("admin_uploadResults"))#,
-        #div(uiOutput("signoutButton"))
+        div(uiOutput("admin_uploadResults"), style="text-align:center; margin-top:50px;")
       )
     ),
-    tabPanel(
-      actionButton(
-        #<i class='fa fa-cloud-download' style='font-size: 32px; margin: 5px; color: #00A0AF;'></i>
-        "signout",
-        HTML("<i class='fas fa-sign-out-alt' style='font-size:16px;'></i> Sign Out"),
-        style="padding:0px;border:0px;"
+      # ----------------------------------
+      # tab panel 9 - SignOut
+      tabPanel(
+        actionButton(
+          #<i class='fa fa-cloud-download' style='font-size: 32px; margin: 5px; color: #00A0AF;'></i>
+          "signout",
+          HTML("<i class='fas fa-sign-out-alt' style='font-size:16px;'></i> Sign Out"),
+          style="padding:0px;border:0px;"
+        )
       )
-    )
     )
   )
 )

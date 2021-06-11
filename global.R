@@ -25,6 +25,9 @@ library(htmltools)
 library(slickR)
 library(reactable)
 library(firebase)
+library(ggplot2)
+library(hrbrthemes)
+library(viridis)
 library(dplyr)
 
 # Create a custom value / info box
