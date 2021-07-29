@@ -10,6 +10,7 @@ source("mongoDB.R")
   #### Section 1: Home
   #### Section 2: Schedule
   #### Section 3: FedEx Cup
+  #### Section 4: OWGR
   #### Section 4: Players
   #### Section 5: Stats
   #### Section 6: Results
@@ -28,9 +29,15 @@ shinyServer(function(input, output, session) {
     
     if(input$isMobile){
       print("You're on mobile device.")
+      FONT_SIZE <- 8
+      print("print(FONT_ZIZE)")
+      print(FONT_SIZE)
     } 
     else{
       print("You're not on mobile device.")
+      FONT_SIZE <- 12
+      print("print(FONT_ZIZE)")
+      print(FONT_SIZE)
     }
 
   })
@@ -467,8 +474,9 @@ shinyServer(function(input, output, session) {
 
 
     # Sticky column CSS.
-    #sticky_style <- list(position = "sticky", left = 0, zIndex = 1, background="#fff")
-    
+    sticky_style_one <- list(position = "sticky", left = 0, background = "#fff", zIndex = 1)
+    sticky_style_two <- list(position = "sticky", left = var_width_rank, background = "#fff", zIndex = 1, borderRight = "1px solid #eee")
+
     # Build the data table.
     reactable(
       data,
@@ -482,8 +490,10 @@ shinyServer(function(input, output, session) {
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
-          class = "sticky-col",
-          headerClass = "sticky-col",
+          style = sticky_style_one,
+          headerStyle = sticky_style_one,
+          #class = "sticky left-col-1",
+          #headerClass = "sticky left-col-1",
           align = "left"
         ),
         Name = colDef(
@@ -491,8 +501,10 @@ shinyServer(function(input, output, session) {
           minWidth = 200,
           maxWidth = 200,
           width = 150,
-          class = "sticky-col",
-          headerClass = "sticky-col",
+          style = sticky_style_two,
+          headerStyle = sticky_style_two,
+          #class = "sticky left-col-2",
+          #headerClass = "sticky left-col-2",
           cell = function(value) {
             # Use player_data as lookup table to grab alias for photos. 
             temp <- players_data %>% 
@@ -538,6 +550,129 @@ shinyServer(function(input, output, session) {
      }
 
     div(reactableOutput("fedExCupMainTable_temp"), style = var_width, class="reactBox align")
+
+  })
+
+
+
+
+
+
+
+
+  #### Section 4: OWGR
+  output$owgrTimeseries <- renderPlotly({
+
+    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    data$Events <- 1
+
+    # Set up constants.
+    N <- 8
+    COST <- 0.5
+    weights <- (10:2) / 10.5
+
+    temp <- data.frame()
+
+    # For loop to do backfill.
+    for(j in N:max(data$Major)){
+
+        RANKING_PERIOD <- j
+
+        # Subset data to the most recent 10 majors. 
+        owgr <- data %>% 
+            #filter( Major %in% (max(data$Major)-(N-1)):max(data$Major) )
+            filter( Major %in% ( (j-(N-1)):j ))
+
+        # Assign points based on finishing position. 
+        owgr <- owgr %>% 
+            group_by(Major) %>% 
+            # Handle playoff.
+            mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
+            data.frame()
+
+        # Apply recency weighting to past N majors.
+        owgr$Weighted_Score <- NA
+        i <- 1
+        for(Major in unique(owgr$Major) ){
+            owgr[owgr$Major %in% Major,]$Weighted_Score <- owgr[owgr$Major %in% Major,]$Score * weights[i]
+            i <- i + 1
+        }
+
+        pts_tbl <- data.frame(Pos = 1:6, Pts = c(6.5, 5:1))
+
+        owgr <- left_join(owgr, pts_tbl, by=c("Pos" = "Pos"))
+
+        owgr[is.na(owgr$Pts),]$Pts <- 0
+
+        # Apply recency weighting to past N majors No. Events.
+        owgr$Weighted_Pts <- NA
+        i <- 1
+        for(Major in unique(owgr$Major) ){
+            owgr[owgr$Major %in% Major,]$Weighted_Pts <- owgr[owgr$Major %in% Major,]$Pts * weights[i]
+            i <- i + 1
+        }
+
+        x <- owgr %>% 
+            group_by(Player) %>%
+            summarise(
+                Ranking_Period = RANKING_PERIOD,
+                Events = n(),
+                Score_sum = sum(Score),
+                Weighted_Score_sum = sum(Weighted_Score),
+                Pts_sum = sum(Pts), 
+                Weighted_Pts_sum = sum(Weighted_Pts)
+            ) %>% data.frame() %>% 
+            arrange(-Weighted_Pts_sum)
+
+        x$Cost <- x$Events * COST
+        x$Add <- x$Weighted_Score_sum/100
+
+        x$OWGR <- x$Weighted_Pts_sum - x$Cost + x$Add
+        x$OWGR <- ifelse(x$OWGR < 0, 0, x$OWGR)
+        x <- x[order(-x$OWGR),]
+        
+
+        temp <- rbind(temp, x)
+
+    }
+
+
+
+    major_dates <- data.frame(unique(data[c("Major", "Date")]))
+
+    temp <- left_join(temp, major_dates[c("Major", "Date")], by = c("Ranking_Period" = "Major"))
+    temp$Date <- lubridate::dmy(temp$Date)
+
+    # Plot
+    p <- temp %>%
+      ggplot( aes(x=reorder(paste0("Major ", Ranking_Period, " (", lubridate::year(Date), ")"), Ranking_Period), y=OWGR, group=Player, color=Player)) +
+        geom_line() +
+        geom_point() +
+        #scale_color_viridis(discrete = TRUE) +
+        ggtitle("OWGR Timeseries") +
+        theme_ipsum() +
+        ylab("OWGR") +
+        xlab("Major Timeline") +
+        theme(axis.text.x = element_text(angle = 20, vjust = 0.5, hjust=1))
+    # Turn it interactive with ggplotly
+    p <- ggplotly(p)
+
+    p <- plotly_build(p) 
+
+    legend_hide <- data.frame()
+    for(i in 1:length(p$x$data)){
+        legend_hide <- rbind(legend_hide, tail(p$x$data[[i]]$y, 1))
+        colnames(legend_hide)[1] <- "Value"
+        p$x$data[[i]]$visible <- "legendonly"
+    }
+
+    for(i in 1:length(p$x$data)){
+        if( tail(p$x$data[[i]]$y, 1) %in% top_n(legend_hide, 5)$Value ){
+            p$x$data[[i]]$visible <- NULL
+        }
+    }
+
+    return(p) 
 
   })
 
@@ -669,129 +804,6 @@ shinyServer(function(input, output, session) {
     ))
 
   })
-
-
-
-
-
-
-
-  #### Section 4: OWGR
-  output$owgrTimeseries <- renderPlotly({
-
-    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
-    data$Events <- 1
-
-    # Set up constants.
-    N <- 8
-    COST <- 0.5
-    weights <- (10:2) / 10.5
-
-    temp <- data.frame()
-
-    # For loop to do backfill.
-    for(j in N:max(data$Major)){
-
-        RANKING_PERIOD <- j
-
-        # Subset data to the most recent 10 majors. 
-        owgr <- data %>% 
-            #filter( Major %in% (max(data$Major)-(N-1)):max(data$Major) )
-            filter( Major %in% ( (j-(N-1)):j ))
-
-        # Assign points based on finishing position. 
-        owgr <- owgr %>% 
-            group_by(Major) %>% 
-            # Handle playoff.
-            mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
-            data.frame()
-
-        # Apply recency weighting to past N majors.
-        owgr$Weighted_Score <- NA
-        i <- 1
-        for(Major in unique(owgr$Major) ){
-            owgr[owgr$Major %in% Major,]$Weighted_Score <- owgr[owgr$Major %in% Major,]$Score * weights[i]
-            i <- i + 1
-        }
-
-        pts_tbl <- data.frame(Pos = 1:6, Pts = c(6.5, 5:1))
-
-        owgr <- left_join(owgr, pts_tbl, by=c("Pos" = "Pos"))
-
-        owgr[is.na(owgr$Pts),]$Pts <- 0
-
-        # Apply recency weighting to past N majors No. Events.
-        owgr$Weighted_Pts <- NA
-        i <- 1
-        for(Major in unique(owgr$Major) ){
-            owgr[owgr$Major %in% Major,]$Weighted_Pts <- owgr[owgr$Major %in% Major,]$Pts * weights[i]
-            i <- i + 1
-        }
-
-        x <- owgr %>% 
-            group_by(Player) %>%
-            summarise(
-                Ranking_Period = RANKING_PERIOD,
-                Events = n(),
-                Score_sum = sum(Score),
-                Weighted_Score_sum = sum(Weighted_Score),
-                Pts_sum = sum(Pts), 
-                Weighted_Pts_sum = sum(Weighted_Pts)
-            ) %>% data.frame() %>% 
-            arrange(-Weighted_Pts_sum)
-
-        x$Cost <- x$Events * COST
-        x$Add <- x$Weighted_Score_sum/100
-
-        x$OWGR <- x$Weighted_Pts_sum - x$Cost + x$Add
-        x$OWGR <- ifelse(x$OWGR < 0, 0, x$OWGR)
-        x <- x[order(-x$OWGR),]
-        
-
-        temp <- rbind(temp, x)
-
-    }
-
-
-
-    major_dates <- data.frame(unique(data[c("Major", "Date")]))
-
-    temp <- left_join(temp, major_dates[c("Major", "Date")], by = c("Ranking_Period" = "Major"))
-    temp$Date <- lubridate::dmy(temp$Date)
-
-    # Plot
-    p <- temp %>%
-      ggplot( aes(x=reorder(paste0("Major ", Ranking_Period, " (", lubridate::year(Date), ")"), Ranking_Period), y=OWGR, group=Player, color=Player)) +
-        geom_line() +
-        geom_point() +
-        #scale_color_viridis(discrete = TRUE) +
-        ggtitle("OWGR Timeseries") +
-        theme_ipsum() +
-        ylab("OWGR") +
-        xlab("Major Timeline") +
-        theme(axis.text.x = element_text(angle = 20, vjust = 0.5, hjust=1))
-    # Turn it interactive with ggplotly
-    p <- ggplotly(p)
-
-    p <- plotly_build(p) 
-
-    legend_hide <- data.frame()
-    for(i in 1:length(p$x$data)){
-        legend_hide <- rbind(legend_hide, tail(p$x$data[[i]]$y, 1))
-        colnames(legend_hide)[1] <- "Value"
-        p$x$data[[i]]$visible <- "legendonly"
-    }
-
-    for(i in 1:length(p$x$data)){
-        if( tail(p$x$data[[i]]$y, 1) %in% top_n(legend_hide, 5)$Value ){
-            p$x$data[[i]]$visible <- NULL
-        }
-    }
-
-    return(p) 
-
-  })
-
 
 
 

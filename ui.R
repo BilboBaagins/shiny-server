@@ -7,6 +7,7 @@ shinyUI(
       div(class="bgimg", style="position:absolute; width:100%;"
       )
     ),
+    #disconnectMessage2(),
     #div(style="position: relative; top:250px;",
     div(class="mobile_firebase_css",
       useFirebase(), # import dependencies
@@ -14,14 +15,18 @@ shinyUI(
     ),
   reqSignin(
     tagList(
-    tags$head(tags$style(HTML("
-                           .navbar-nav {
-                           float: none !important;
-                           }
-                           .navbar-nav > li:nth-child(9) {
-                           float: right;
-                           }
-                           ")))),
+    tags$head(
+      tags$style(
+        HTML(".navbar-nav {
+              float: none !important;
+              }
+              .navbar-nav > li:nth-child(9) {
+              float: right;
+              }
+              ")
+        )
+      )
+    ),
     navbarPage(
       title = "paptour.com",
       selected = "Home",
@@ -40,7 +45,6 @@ shinyUI(
         tags$style(type="text/css", "padding-top: 70px;"),
         tags$script(src = "plugins/scripts.js"),
         tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
-
         tags$head(
           tags$link(rel = "icon", 
                     type = "image/png", 
@@ -62,6 +66,10 @@ shinyUI(
       # tab panel 3 - FedEx Cup
       tabPanel("FedEx Cup",
         div(class="navbar-buffer"),
+        #fluidRow(
+        #  div(uiOutput("rankingPlayer")),
+        #  div(style='height:60px;')
+        #),
         fluidRow(
           div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;"),

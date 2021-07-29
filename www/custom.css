@@ -398,7 +398,7 @@ color :  #636363;
 
 .selectize-input {
      font-size: 12px !important;   
-     // z-index: 1002 !important; 
+     /*z-index: 1002 !important;*/
 }
 
 .selectize-dropdown {

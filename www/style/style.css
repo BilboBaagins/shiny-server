@@ -693,6 +693,19 @@ i:hover{
 	zIndex: 1;
 }
 
+.sticky {
+	position: sticky !important;
+	background: #fff;
+	z-index: 1;
+  }
+  
+.left-col-1 {
+left: 0;
+}
+
+.left-col-2 {
+left: 100px;
+}
 
 .loader {
     border: 5px solid #f3f3f3;
