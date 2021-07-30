@@ -21,7 +21,7 @@ source("mongoDB.R")
 shinyServer(function(input, output, session) {
 
 
-  # print list of input events
+ # print list of input events
   output$text <- renderPrint({reactiveValuesToList(input)})
 
   is_mobile <- reactiveVal(NULL)
@@ -420,27 +420,28 @@ shinyServer(function(input, output, session) {
   })
 
 
-
-      
-
   # ShinyAlert modal if portait & on mobile. 
   observeEvent(input$navBar, {
 
     # Get JavaScript to check if the device is in Portrait or Landscape mode.
     shinyjs::runjs("
       if(window.innerHeight < window.innerWidth){
-        Shiny.setInputValue('landscapeMode', null);
-        Shiny.setInputValue('landscapeMode', 'yes');
+        
+        Shiny.setInputValue('landscapeMode_schedule', null);
+        Shiny.setInputValue('landscapeMode_schedule', 'yes');
+        
       } else{
-          Shiny.setInputValue('landscapeMode', null);
-          Shiny.setInputValue('landscapeMode', 'no');
+          
+          Shiny.setInputValue('landscapeMode_schedule', null);
+          Shiny.setInputValue('landscapeMode_schedule', 'no');
+
       }
     ")
+  })
 
-    print("print(input$landscapeMode)")
-    print(input$landscapeMode)
+  observeEvent(input$landscapeMode_schedule, {
 
-    if(input$navBar %in% "Schedule" && is_mobile() && input$landscapeMode %in% "no"){
+    if(input$navBar %in% "Schedule" && is_mobile() && input$landscapeMode_schedule %in% "no"){
 
       shinyalert(
         inputId = "schedule_shinyalert",
@@ -465,22 +466,6 @@ shinyServer(function(input, output, session) {
     }
 
   })
-
-
-
-  observeEvent(input$schedule_shinyalert, {
-    # Get JavaScript to check if the device is in Portrait or Landscape mode.
-    shinyjs::runjs("
-      if(window.innerHeight < window.innerWidth){
-        Shiny.setInputValue('landscapeMode', null);
-        Shiny.setInputValue('landscapeMode', 'yes');
-      } else{
-          Shiny.setInputValue('landscapeMode', null);
-          Shiny.setInputValue('landscapeMode', 'no');
-      }
-    ")
-  })
-
 
 
 
@@ -640,18 +625,26 @@ shinyServer(function(input, output, session) {
     # Get JavaScript to check if the device is in Portrait or Landscape mode.
     shinyjs::runjs("
       if(window.innerHeight < window.innerWidth){
-        Shiny.setInputValue('landscapeMode', null);
-        Shiny.setInputValue('landscapeMode', 'yes');
+
+        Shiny.setInputValue('landscapeMode_fedex', null);
+        Shiny.setInputValue('landscapeMode_fedex', 'yes');
+
       } else{
-          Shiny.setInputValue('landscapeMode', null);
-          Shiny.setInputValue('landscapeMode', 'no');
+
+          Shiny.setInputValue('landscapeMode_fedex', null);
+          Shiny.setInputValue('landscapeMode_fedex', 'no');
+          
       }
     ")
 
-    print("print(input$landscapeMode)")
-    print(input$landscapeMode)
+    print("print(input$landscapeMode_fedex)")
+    print(input$landscapeMode_fedex)
 
-    if(input$navBar %in% "FedEx Cup" && is_mobile() && input$landscapeMode %in% "no"){
+  })
+
+  observeEvent(input$landscapeMode_fedex, {
+
+    if(input$navBar %in% "FedEx" && is_mobile() && input$landscapeMode_fedex %in% "no"){
 
       shinyalert(
         inputId = "fedex_shinyalert",
@@ -676,20 +669,6 @@ shinyServer(function(input, output, session) {
     }
 
   })
-
-  observeEvent(input$fedex_shinyalert, {
-    # Get JavaScript to check if the device is in Portrait or Landscape mode.
-    shinyjs::runjs("
-      if(window.innerHeight < window.innerWidth){
-        Shiny.setInputValue('landscapeMode', null);
-        Shiny.setInputValue('landscapeMode', 'yes');
-      } else{
-          Shiny.setInputValue('landscapeMode', null);
-          Shiny.setInputValue('landscapeMode', 'no');
-      }
-    ")
-  })
-
 
 
 
@@ -1718,18 +1697,26 @@ shinyServer(function(input, output, session) {
     # Get JavaScript to check if the device is in Portrait or Landscape mode.
     shinyjs::runjs("
       if(window.innerHeight < window.innerWidth){
-        Shiny.setInputValue('landscapeMode', null);
-        Shiny.setInputValue('landscapeMode', 'yes');
+
+        Shiny.setInputValue('landscapeMode_results', null);
+        Shiny.setInputValue('landscapeMode_results', 'yes');
+
       } else{
-          Shiny.setInputValue('landscapeMode', null);
-          Shiny.setInputValue('landscapeMode', 'no');
+
+          Shiny.setInputValue('landscapeMode_results', null);
+          Shiny.setInputValue('landscapeMode_results', 'no');
+
       }
     ")
 
-    print("print(input$landscapeMode)")
-    print(input$landscapeMode)
+    print("print(input$landscapeMode_results)")
+    print(input$landscapeMode_results)
 
-    if(input$navBar %in% "Results" && is_mobile() && input$landscapeMode %in% "no"){
+  })
+
+
+  observeEvent(input$landscapeMode_results, {
+    if(input$navBar %in% "Results" && is_mobile() && input$landscapeMode_results %in% "no"){
 
       shinyalert(
         inputId = "results_shinyalert",
@@ -1755,18 +1742,18 @@ shinyServer(function(input, output, session) {
 
   })
 
-  observeEvent(input$results_shinyalert, {
-    # Get JavaScript to check if the device is in Portrait or Landscape mode.
-    shinyjs::runjs("
-      if(window.innerHeight < window.innerWidth){
-        Shiny.setInputValue('landscapeMode', null);
-        Shiny.setInputValue('landscapeMode', 'yes');
-      } else{
-          Shiny.setInputValue('landscapeMode', null);
-          Shiny.setInputValue('landscapeMode', 'no');
-      }
-    ")
-  })
+  #observeEvent(input$results_shinyalert, {
+  #  # Get JavaScript to check if the device is in Portrait or Landscape mode.
+  #  shinyjs::runjs("
+  #    if(window.innerHeight < window.innerWidth){
+  #      Shiny.setInputValue('landscapeMode', null);
+  #      Shiny.setInputValue('landscapeMode', 'yes');
+  #    } else{
+  #        Shiny.setInputValue('landscapeMode', null);
+  #        Shiny.setInputValue('landscapeMode', 'no');
+  #    }
+  #  ")
+  #})
 
 
 

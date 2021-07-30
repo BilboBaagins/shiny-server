@@ -28,10 +28,10 @@ shinyUI(
       )
     ),
     navbarPage(
+      id = "navBar",
       title = "paptour.com",
       selected = "Home",
       position = c("fixed-top"),
-      id = "navBar",
       theme = "style/style.css",
       footer = includeHTML("footer.html"),
       fluid = TRUE, 
@@ -60,12 +60,13 @@ shinyUI(
         fluidRow(
           div(uiOutput("majorScheduleTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("majorScheduleTable"), style="text-align:center; margin-bottom:50px;")
+          #,verbatimTextOutput( outputId = "text")
         )
       ),
       
       # ----------------------------------
       # tab panel 3 - FedEx Cup
-      tabPanel("FedEx Cup",
+      tabPanel("FedEx",
         div(class="navbar-buffer"),
         #fluidRow(
         #  div(uiOutput("rankingPlayer")),
