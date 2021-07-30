@@ -24,25 +24,42 @@ shinyServer(function(input, output, session) {
   # print list of input events
   output$text <- renderPrint({reactiveValuesToList(input)})
 
+  is_mobile <- reactiveVal(NULL)
+
+  global <- reactiveValues(response = FALSE)
+
   # Sanity check - print to console whether mobile device or not. 
   observeEvent(input$isMobile, {
     
     if(input$isMobile){
       print("You're on mobile device.")
-      FONT_SIZE <- 8
+      FONT_SIZE <<- 12
       print("print(FONT_ZIZE)")
       print(FONT_SIZE)
+
+      is_mobile(TRUE)
+
+      print("print( is_mobile() )")
+      print( is_mobile() )
+
     } 
     else{
+      
       print("You're not on mobile device.")
-      FONT_SIZE <- 12
+      FONT_SIZE <<- 14
       print("print(FONT_ZIZE)")
       print(FONT_SIZE)
+
+      is_mobile(FALSE)
+
+      print("print( is_mobile() )")
+      print( is_mobile() )
+
     }
 
   })
 
-
+  
 
  #----- Detect Mobile ------
  #is_mobile_device <- reactive(isTRUE(input$is_mobile_device))
@@ -92,6 +109,7 @@ shinyServer(function(input, output, session) {
     # Get logged in user info.
     user <- f$get_signed_in()$response$displayName
 
+    print("print(input$navBar)")
     print(input$navBar)
 
     if( is.null(user) || user == "BilboBaagins" ){
@@ -314,6 +332,9 @@ shinyServer(function(input, output, session) {
       filterable = FALSE,
       searchable = FALSE,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         lat = colDef(show=FALSE),
         lon = colDef(show=FALSE)
@@ -323,20 +344,20 @@ shinyServer(function(input, output, session) {
         map_data <- data[index, ]
 
         htmltools::div(
-          htmltools::div(style = "padding-top: 26px; padding-left: 100px; padding-right: 100px;",
+          htmltools::div(style = "padding-top: 26px; padding-left: 10px; padding-right: 10px;",
 
             tags$iframe(
               seamless = "seamless",
               src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
-              width = "80%",
+              width = "100%",
               height = 250,
               style = "border:0px;"
             )
 
           ),
-          htmltools::div(style = "padding-top: 0px; padding-left: 100px; padding-right: 100px; padding-bottom: 100px;",
+          htmltools::div(style = "padding-top: 0px; padding-left: 10px; padding-right: 10px; padding-bottom: 100px;",
 
-            leaflet() %>% 
+            leaflet(options = leafletOptions(attributionControl = FALSE)) %>% 
               setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
               addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
               addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
@@ -400,8 +421,65 @@ shinyServer(function(input, output, session) {
 
 
 
+      
+
+  # ShinyAlert modal if portait & on mobile. 
+  observeEvent(input$navBar, {
+
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        Shiny.setInputValue('landscapeMode', null);
+        Shiny.setInputValue('landscapeMode', 'yes');
+      } else{
+          Shiny.setInputValue('landscapeMode', null);
+          Shiny.setInputValue('landscapeMode', 'no');
+      }
+    ")
+
+    print("print(input$landscapeMode)")
+    print(input$landscapeMode)
+
+    if(input$navBar %in% "Schedule" && is_mobile() && input$landscapeMode %in% "no"){
+
+      shinyalert(
+        inputId = "schedule_shinyalert",
+        title = "",
+        text = "Switch mobile orientation to view full table",
+        size = "s", 
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        type = "",
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        confirmButtonText = "OK",
+        confirmButtonCol = "#AEDEF4",
+        timer = 0,
+        imageUrl = "switch_to_landscape.png",
+        imageWidth = 150,
+        imageHeight = 150,
+        animation = TRUE
+      )
+
+    }
+
+  })
 
 
+
+  observeEvent(input$schedule_shinyalert, {
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        Shiny.setInputValue('landscapeMode', null);
+        Shiny.setInputValue('landscapeMode', 'yes');
+      } else{
+          Shiny.setInputValue('landscapeMode', null);
+          Shiny.setInputValue('landscapeMode', 'no');
+      }
+    ")
+  })
 
 
 
@@ -485,13 +563,16 @@ shinyServer(function(input, output, session) {
       highlight = TRUE,
       pagination = FALSE,
       height = 500,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         'Rank' = colDef(
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
-          style = sticky_style_one,
-          headerStyle = sticky_style_one,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
           #class = "sticky left-col-1",
           #headerClass = "sticky left-col-1",
           align = "left"
@@ -501,8 +582,8 @@ shinyServer(function(input, output, session) {
           minWidth = 200,
           maxWidth = 200,
           width = 150,
-          style = sticky_style_two,
-          headerStyle = sticky_style_two,
+          #style = sticky_style_two,
+          #headerStyle = sticky_style_two,
           #class = "sticky left-col-2",
           #headerClass = "sticky left-col-2",
           cell = function(value) {
@@ -553,9 +634,61 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # ShinyAlert modal if portait & on mobile. 
+  observeEvent(input$navBar, {
 
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        Shiny.setInputValue('landscapeMode', null);
+        Shiny.setInputValue('landscapeMode', 'yes');
+      } else{
+          Shiny.setInputValue('landscapeMode', null);
+          Shiny.setInputValue('landscapeMode', 'no');
+      }
+    ")
 
+    print("print(input$landscapeMode)")
+    print(input$landscapeMode)
 
+    if(input$navBar %in% "FedEx Cup" && is_mobile() && input$landscapeMode %in% "no"){
+
+      shinyalert(
+        inputId = "fedex_shinyalert",
+        title = "",
+        text = "Switch mobile orientation to view full table",
+        size = "s", 
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        type = "",
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        confirmButtonText = "OK",
+        confirmButtonCol = "#AEDEF4",
+        timer = 0,
+        imageUrl = "switch_to_landscape.png",
+        imageWidth = 150,
+        imageHeight = 150,
+        animation = TRUE
+      )
+
+    }
+
+  })
+
+  observeEvent(input$fedex_shinyalert, {
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        Shiny.setInputValue('landscapeMode', null);
+        Shiny.setInputValue('landscapeMode', 'yes');
+      } else{
+          Shiny.setInputValue('landscapeMode', null);
+          Shiny.setInputValue('landscapeMode', 'no');
+      }
+    ")
+  })
 
 
 
@@ -862,6 +995,9 @@ shinyServer(function(input, output, session) {
       minRows = 5,
       defaultPageSize = 5,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Rank = colDef(
           minWidth = var_width_rank,
@@ -978,6 +1114,9 @@ shinyServer(function(input, output, session) {
       defaultPageSize = 5, 
       minRows = 5,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Rank = colDef(
           minWidth = var_width_rank,
@@ -1078,6 +1217,9 @@ shinyServer(function(input, output, session) {
       minRows = 5,
       defaultPageSize = 5,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Rank = colDef(
           minWidth = var_width_rank,
@@ -1164,6 +1306,9 @@ shinyServer(function(input, output, session) {
       minRows = 5,
       defaultPageSize = 5,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Rank = colDef(
           minWidth = var_width_rank,
@@ -1254,6 +1399,9 @@ shinyServer(function(input, output, session) {
       minRows = 5,
       defaultPageSize = 5,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Rank = colDef(
           minWidth = var_width_rank,
@@ -1348,6 +1496,9 @@ shinyServer(function(input, output, session) {
       minRows = 5,
       defaultPageSize = 5,
       highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Rank = colDef(
           minWidth = var_width_rank,
@@ -1404,7 +1555,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  #### Section 5: Results
+  #### Section 6: Results
 
   # Results Table - Title. 
   output$majorResultsTableTitle <- renderUI({
@@ -1468,7 +1619,6 @@ shinyServer(function(input, output, session) {
     major_results_data$Date <- lubridate::dmy(major_results_data$Date)
 
 
-
     if(input$isMobile){
       var_width <- 150
       var_width_rank <- 70
@@ -1478,25 +1628,67 @@ shinyServer(function(input, output, session) {
         var_width_rank <- 120
       }
 
+    # Sticky column CSS.
+    sticky_style_one <- list(position = "sticky", left = 0, background = "#fff", zIndex = 1)
+    sticky_style_two <- list(position = "sticky", left = var_width_rank, background = "#fff", zIndex = 1, borderRight = "1px solid #eee")
+
     # Build the table with nested table inside.
     reactable(
       major_results_data, 
       filterable = TRUE,
       searchable = FALSE,
       highlight = TRUE,
+      pagination = FALSE,
+      height = 500,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
       columns = list(
         Major = colDef(
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
           width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
           align = "center"
+        ),
+        Field = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "center"
+        ),
+        Score = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "center"
+        ),
+        Handicap = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "center"
+        ),
+        Venue = colDef(
+          minWidth = 120,
+          maxWidth = 120,
+          width = 120,
+          align = "left"
         )
       ),
       details = function(index) {
         event_data <- data[data$Major == major_results_data$Major[index], ]
         htmltools::div(style = "padding: 16px",
           reactable(
-            event_data, 
+            event_data[
+              c("Major",
+                "Date",
+                "Player",
+                "Handicap",
+                "Score",
+                "Venue")
+            ], 
             outlined = TRUE,
             highlight = TRUE
           )
@@ -1518,6 +1710,62 @@ shinyServer(function(input, output, session) {
 
    div(reactableOutput("majorResultsTable_temp"), style = var_width, class="reactBox align")
 
+  })
+
+  # ShinyAlert modal if portait & on mobile. 
+  observeEvent(input$navBar, {
+
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        Shiny.setInputValue('landscapeMode', null);
+        Shiny.setInputValue('landscapeMode', 'yes');
+      } else{
+          Shiny.setInputValue('landscapeMode', null);
+          Shiny.setInputValue('landscapeMode', 'no');
+      }
+    ")
+
+    print("print(input$landscapeMode)")
+    print(input$landscapeMode)
+
+    if(input$navBar %in% "Results" && is_mobile() && input$landscapeMode %in% "no"){
+
+      shinyalert(
+        inputId = "results_shinyalert",
+        title = "",
+        text = "Switch mobile orientation to view full table",
+        size = "s", 
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        type = "",
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        confirmButtonText = "OK",
+        confirmButtonCol = "#AEDEF4",
+        timer = 0,
+        imageUrl = "switch_to_landscape.png",
+        imageWidth = 150,
+        imageHeight = 150,
+        animation = TRUE
+      )
+
+    }
+
+  })
+
+  observeEvent(input$results_shinyalert, {
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        Shiny.setInputValue('landscapeMode', null);
+        Shiny.setInputValue('landscapeMode', 'yes');
+      } else{
+          Shiny.setInputValue('landscapeMode', null);
+          Shiny.setInputValue('landscapeMode', 'no');
+      }
+    ")
   })
 
 

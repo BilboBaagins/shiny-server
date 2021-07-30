@@ -42,7 +42,7 @@ createInfoBox <- function(value, iconName, text) {
 rating_stars <- function(rating) {
   star_icon <- function(empty = FALSE) {
     tagAppendAttributes(shiny::icon("star"),
-      style = paste("font-size: 16px; padding: 0px; color: ", if (empty) "#edf0f2" else "orange"),
+      style = paste("font-size: 12px; padding: 0px; color: ", if (empty) "#edf0f2" else "orange"),
       "aria-hidden" = "true"
     )
   }
@@ -88,6 +88,25 @@ isMobile <- function(){
             $(document).on('shiny:sessioninitialized', function(e){
                 var isMobile = /((iPhone)|(iPad)|(Android)|(BlackBerry))/.test(navigator.userAgent);
                 Shiny.setInputValue('isMobile',isMobile)
+            })
+          ")
+        )
+    )
+}
+
+isLandscape <- function(){
+    shiny::tagList(
+        shiny::singleton(
+            # detect is user are using following devices
+            tags$script("
+            $(document).on('shiny:sessioninitialized', function(e){
+                
+                
+                var isMobile = /((iPhone)|(iPad)|(Android)|(BlackBerry))/.test(navigator.userAgent);
+
+                var isLandscape = if(window.innerHeight < window.innerWidth)
+
+                Shiny.setInputValue('isLandscape',isLandscape)
             })
           ")
         )

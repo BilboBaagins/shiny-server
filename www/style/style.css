@@ -1017,3 +1017,14 @@ i:hover {
     content: "\f2f5";
 	color: #b23b3b !important;
 }
+
+/* for all screens */
+#info {display: none;}
+
+/* only when orientation is in portrait mode */
+@media all and (orientation:portrait) {
+    #info {
+         display: block;
+    }
+}
+

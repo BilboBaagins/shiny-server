@@ -41,6 +41,7 @@ shinyUI(
       # tab panel 1 - Home
       tabPanel("Home",
         shinyjs::useShinyjs(),
+        useShinyalert(),  # Set up shinyalert
         includeHTML("home.html"),
         tags$style(type="text/css", "padding-top: 70px;"),
         tags$script(src = "plugins/scripts.js"),
@@ -153,6 +154,9 @@ shinyUI(
       # tab panel 7 - Results
       tabPanel("Results",
         div(class="navbar-buffer"),
+        fluidRow(
+          div(uiOutput("rotateLandscape"))
+        ),
         fluidRow(
               div(uiOutput("majorResultsTableTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("majorResultsTable"), style="text-align:center; margin-bottom:50px;")
