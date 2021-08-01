@@ -84,8 +84,12 @@ shinyUI(
       tabPanel("OWGR",
         div(class="navbar-buffer"),
         fluidRow(
-          div(plotlyOutput("owgrTimeseries", width="80%", height="600px")),
-          uiOutput('owgrInfogrphic')
+          div(
+            div(uiOutput("owgrTimeseries_conditional"), style = "text-align:center;"),
+            div(uiOutput("owgrMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
+            div(uiOutput("owgrMainTable"), style = "text-align:center;"),
+            uiOutput('owgrInfogrphic')
+          )
         )
       ),
       
@@ -120,19 +124,30 @@ shinyUI(
         fluidPage(
           fluidRow(
             column(6, 
+              div(uiOutput("owgrTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("owgr"), style="text-align:center;"),
+              div(uiOutput("owgrSeeMore"), style="text-align:center;margin-bottom:50px;")
+            ),
+            column(6, 
               div(uiOutput("fedExCupTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("fedExCup"), style="text-align:center;"),
               div(uiOutput("fedExCupSeeMore"), style="text-align:center;margin-bottom:50px;")
-            ),
-            column(6, 
-              div(uiOutput("majorWinsTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("majorWins"), style="text-align:center; margin-bottom:50px;")
             )
           ),
           fluidRow(
             column(6, 
+              div(uiOutput("majorWinsTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("majorWins"), style="text-align:center; margin-bottom:50px;")
+            ),
+            column(6, 
               div(uiOutput("topThreeFinishesTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("topThreeFinishes"), style="text-align:center; margin-bottom:50px;")
+            )
+          ),          
+          fluidRow(
+            column(6, 
+              div(uiOutput("avgScoringTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("avgScoring"), style="text-align:center; margin-bottom:50px;")
             ),
             column(6, 
               div(uiOutput("majorAttendanceTitle"), style="text-align:center; margin-bottom:10px;"),
@@ -141,9 +156,15 @@ shinyUI(
           ),          
           fluidRow(
             column(6, 
-              div(uiOutput("avgScoringTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("avgScoring"), style="text-align:center; margin-bottom:50px;")
+              div(uiOutput("venueFrequencyTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("venueFrequency"), style="text-align:center; margin-bottom:50px;")
             ),
+            column(6, 
+              div(uiOutput("handicapsTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("handicaps"), style="text-align:center; margin-bottom:50px;")
+            )
+          ),          
+          fluidRow(
             column(6, 
               div(uiOutput("woodenSpoonTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("woodenSpoon"), style="text-align:center; margin-bottom:50px;")

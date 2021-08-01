@@ -292,6 +292,93 @@ shinyServer(function(input, output, session) {
     return(data)
   })
 
+  # OWGR Timeseries Data. 
+  owgr_tseries <- reactive({
+
+    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    data$Events <- 1
+
+    # Set up constants.
+    N <- 8
+    COST <- 0.5
+    weights <- (10:2) / 10.5
+
+    temp <- data.frame()
+
+    # For loop to do backfill.
+    for(j in N:max(data$Major)){
+
+        RANKING_PERIOD <- j
+
+        # Subset data to the most recent 10 majors. 
+        owgr <- data %>% 
+            #filter( Major %in% (max(data$Major)-(N-1)):max(data$Major) )
+            filter( Major %in% ( (j-(N-1)):j ))
+
+        # Assign points based on finishing position. 
+        owgr <- owgr %>% 
+            group_by(Major) %>% 
+            # Handle playoff.
+            mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
+            data.frame()
+
+        # Apply recency weighting to past N majors.
+        owgr$Weighted_Score <- NA
+        i <- 1
+        for(Major in unique(owgr$Major) ){
+            owgr[owgr$Major %in% Major,]$Weighted_Score <- owgr[owgr$Major %in% Major,]$Score * weights[i]
+            i <- i + 1
+        }
+
+        pts_tbl <- data.frame(Pos = 1:6, Pts = c(6.5, 5:1))
+
+        owgr <- left_join(owgr, pts_tbl, by=c("Pos" = "Pos"))
+
+        owgr[is.na(owgr$Pts),]$Pts <- 0
+
+        # Apply recency weighting to past N majors No. Events.
+        owgr$Weighted_Pts <- NA
+        i <- 1
+        for(Major in unique(owgr$Major) ){
+            owgr[owgr$Major %in% Major,]$Weighted_Pts <- owgr[owgr$Major %in% Major,]$Pts * weights[i]
+            i <- i + 1
+        }
+
+        x <- owgr %>% 
+            group_by(Player) %>%
+            summarise(
+                Ranking_Period = RANKING_PERIOD,
+                Events = n(),
+                Score_sum = sum(Score),
+                Weighted_Score_sum = sum(Weighted_Score),
+                Pts_sum = sum(Pts), 
+                Weighted_Pts_sum = sum(Weighted_Pts)
+            ) %>% data.frame() %>% 
+            arrange(-Weighted_Pts_sum)
+
+        x$Cost <- x$Events * COST
+        x$Add <- x$Weighted_Score_sum/100
+
+        x$OWGR <- x$Weighted_Pts_sum - x$Cost + x$Add
+        x$OWGR <- ifelse(x$OWGR < 0, 0, x$OWGR)
+        x <- x[order(-x$OWGR),]
+        
+
+        temp <- rbind(temp, x)
+
+    }
+
+
+
+    major_dates <- data.frame(unique(data[c("Major", "Date")]))
+
+    temp <- left_join(temp, major_dates[c("Major", "Date")], by = c("Ranking_Period" = "Major"))
+    temp$Date <- lubridate::dmy(temp$Date)
+
+    data <- temp
+    return(data)
+
+  })
 
 
 
@@ -673,90 +760,15 @@ shinyServer(function(input, output, session) {
 
 
   #### Section 4: OWGR
+
+  # OWGR Timeseries Chart.
   output$owgrTimeseries <- renderPlotly({
 
-    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
-    data$Events <- 1
-
-    # Set up constants.
-    N <- 8
-    COST <- 0.5
-    weights <- (10:2) / 10.5
-
-    temp <- data.frame()
-
-    # For loop to do backfill.
-    for(j in N:max(data$Major)){
-
-        RANKING_PERIOD <- j
-
-        # Subset data to the most recent 10 majors. 
-        owgr <- data %>% 
-            #filter( Major %in% (max(data$Major)-(N-1)):max(data$Major) )
-            filter( Major %in% ( (j-(N-1)):j ))
-
-        # Assign points based on finishing position. 
-        owgr <- owgr %>% 
-            group_by(Major) %>% 
-            # Handle playoff.
-            mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
-            data.frame()
-
-        # Apply recency weighting to past N majors.
-        owgr$Weighted_Score <- NA
-        i <- 1
-        for(Major in unique(owgr$Major) ){
-            owgr[owgr$Major %in% Major,]$Weighted_Score <- owgr[owgr$Major %in% Major,]$Score * weights[i]
-            i <- i + 1
-        }
-
-        pts_tbl <- data.frame(Pos = 1:6, Pts = c(6.5, 5:1))
-
-        owgr <- left_join(owgr, pts_tbl, by=c("Pos" = "Pos"))
-
-        owgr[is.na(owgr$Pts),]$Pts <- 0
-
-        # Apply recency weighting to past N majors No. Events.
-        owgr$Weighted_Pts <- NA
-        i <- 1
-        for(Major in unique(owgr$Major) ){
-            owgr[owgr$Major %in% Major,]$Weighted_Pts <- owgr[owgr$Major %in% Major,]$Pts * weights[i]
-            i <- i + 1
-        }
-
-        x <- owgr %>% 
-            group_by(Player) %>%
-            summarise(
-                Ranking_Period = RANKING_PERIOD,
-                Events = n(),
-                Score_sum = sum(Score),
-                Weighted_Score_sum = sum(Weighted_Score),
-                Pts_sum = sum(Pts), 
-                Weighted_Pts_sum = sum(Weighted_Pts)
-            ) %>% data.frame() %>% 
-            arrange(-Weighted_Pts_sum)
-
-        x$Cost <- x$Events * COST
-        x$Add <- x$Weighted_Score_sum/100
-
-        x$OWGR <- x$Weighted_Pts_sum - x$Cost + x$Add
-        x$OWGR <- ifelse(x$OWGR < 0, 0, x$OWGR)
-        x <- x[order(-x$OWGR),]
-        
-
-        temp <- rbind(temp, x)
-
-    }
-
-
-
-    major_dates <- data.frame(unique(data[c("Major", "Date")]))
-
-    temp <- left_join(temp, major_dates[c("Major", "Date")], by = c("Ranking_Period" = "Major"))
-    temp$Date <- lubridate::dmy(temp$Date)
+    # Load OWGR Timeseries data. 
+    data <- owgr_tseries()
 
     # Plot
-    p <- temp %>%
+    p <- data %>%
       ggplot( aes(x=reorder(paste0("Major ", Ranking_Period, " (", lubridate::year(Date), ")"), Ranking_Period), y=OWGR, group=Player, color=Player)) +
         geom_line() +
         geom_point() +
@@ -785,6 +797,136 @@ shinyServer(function(input, output, session) {
     }
 
     return(p) 
+
+  })
+
+  # OWGR Timeseries Chart (conditional UI for mobile/desktop)
+  output$owgrTimeseries_conditional <- renderUI({
+
+    if(input$isMobile){
+      div(NULL)
+    }else{
+        div(plotlyOutput("owgrTimeseries", width="1300px", height="600px"), style = 'display: inline-block;')
+    }
+
+  })
+
+  # OWGR Table - Title. 
+  output$owgrMainTableTitle <- renderUI({
+
+    div(
+      div("OWGR", HTML("<i id='owgrMainTableTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("owgrMainTableTitleID", "OWGR Standings", "Official World Golf Rankings for the PAP Pro Tour.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # OWGR Table - temp.
+  output$owgrMainTable_temp <- renderReactable({
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 60
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Load data. 
+    data <- owgr_tseries()
+    players_data <- players_data()
+
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Ranking_Period)) %>% 
+        data.frame()
+
+    data <- data[order(data$OWGR, decreasing=TRUE),]
+
+    data <- data %>%
+      rename('Ranking Period' = Ranking_Period) %>% 
+      rename('No. Events Entered' = Events) %>% 
+      rename('Score' = Score_sum) %>% 
+      rename('Weighted Score' = Weighted_Score_sum) %>% 
+      rename('Pts' = Pts_sum) %>% 
+      rename('Weighted Pts' = Weighted_Pts_sum) 
+      
+      data <- data %>% 
+        mutate( Rank = dense_rank(-data$OWGR) )
+
+      data <- data %>% select(
+        Rank, 
+        'Ranking Period',
+        Player, 
+        OWGR,
+        'No. Events Entered',
+        Score,
+        'Weighted Score', 
+        Pts, 
+        'Weighted Pts'
+      )
+
+      data$OWGR <- round(data$OWGR, 2)
+      data$Score <- round(data$Score, 2)
+      data$'Weighted Score' <- round(data$'Weighted Score', 2)
+      data$Pts <- round(data$Pts, 2)
+      data$'Weighted Pts' <- round(data$'Weighted Pts', 2)
+
+    # Build the data table.
+    reactable(
+      data,
+      filterable = TRUE,
+      searchable = FALSE,
+      highlight = TRUE,
+      pagination = FALSE,
+      height = 500,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "left"
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+
+  })
+
+  # OWGR Table. 
+  output$owgrMainTable <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:90%;"
+   } 
+     else{
+       var_width <- "width:90%;"
+     }
+
+    div(
+      reactableOutput("owgrMainTable_temp"), 
+      style = var_width, 
+      class="reactBox align"
+    )
 
   })
 
@@ -923,7 +1065,127 @@ shinyServer(function(input, output, session) {
 
 
 
-  #### Section 4: Stats
+  #### Section 5: Stats
+
+  # OWGR -----------
+  # OWGR - Title. 
+  output$owgrTitle <- renderUI({
+
+    div(
+      div("OWGR", HTML("<i id='owgrTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("owgrTitleID", "OWGR Standings", "Official World Golf Rankings for the PAP Pro Tour.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # OWGR - temp.
+  output$owgr_temp <- renderReactable({
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 60
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Load data. 
+    data <- owgr_tseries()
+    players_data <- players_data()
+
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Ranking_Period)) %>% 
+        data.frame()
+
+    data <- data[order(data$OWGR, decreasing=TRUE),]
+
+    data <- data %>%
+      rename('Ranking Period' = Ranking_Period) %>% 
+      rename('No. Events Entered' = Events) %>% 
+      rename('Score' = Score_sum) %>% 
+      rename('Weighted Score' = Weighted_Score_sum) %>% 
+      rename('Pts' = Pts_sum) %>% 
+      rename('Weighted Pts' = Weighted_Pts_sum) 
+      
+      data <- data %>% 
+        mutate( Rank = dense_rank(-data$OWGR) )
+
+      data <- data %>% select(
+        Rank, 
+        Player, 
+        OWGR
+      )
+
+      data$OWGR <- round(data$OWGR, 2)
+
+    # Build the data table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "left"
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+
+  })
+
+  # OWGR Cup. 
+  output$owgr <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+    div(reactableOutput("owgr_temp"), style = var_width, class="reactBox align")
+
+  })
+
+  # See More button for OWGR tab.
+  output$owgrSeeMore <- renderUI({
+
+    actionLink("owgrSeeMore_input", "See More")
+
+  })
+
+  # Jump user to OWGR tab. 
+  observeEvent(input$owgrSeeMore_input, {
+
+    updateTabsetPanel(session, "navBar", selected = "OWGR")
+
+  })
 
   # FedEx Cup -----------
   # FedEx Cup - Title. 
@@ -1026,7 +1288,7 @@ shinyServer(function(input, output, session) {
   # Jump user to FedExCup tab. 
   observeEvent(input$fedExCupSeeMore_input, {
 
-    updateTabsetPanel(session, "navBar", selected = "FedEx Cup")
+    updateTabsetPanel(session, "navBar", selected = "FedEx")
 
   })
 
@@ -1516,6 +1778,173 @@ shinyServer(function(input, output, session) {
 
   })
   
+  # Venue Frequency -----------
+  # Venue Frequency - Title. 
+  output$venueFrequencyTitle <- renderUI({
+
+    div(
+      div("Venue Frequency", HTML("<i id='venueFrequencyTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("venueFrequencyTitleID", "Venue Frequency", "Most popular major venues.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  }) 
+  
+  # Venue Frequency - temp. 
+  output$venueFrequency_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 60
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Wrangle major results data to extract number of last place finishes.
+    data <- data[c("Major", "Venue")] %>% unique
+    data <- data.frame(sort(table(data$Venue), decreasing = TRUE))
+    colnames(data)[1] <- "Venue"
+    colnames(data)[2] <- "No. Majors"
+
+    data <- data %>% 
+      mutate( Rank = dense_rank(-data$'No. Majors') )
+
+    data <- data[c('Rank', 'Venue', 'No. Majors')]
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "left"
+        )
+      )
+    )
+
+  })
+
+  # Venue Frequency. 
+  output$venueFrequency <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+   div(reactableOutput("venueFrequency_temp"), style = var_width, class="reactBox align")
+
+  })
+  
+  # Handicaps -----------
+  # Handicaps - Title. 
+  output$handicapsTitle <- renderUI({
+
+    div(
+      div("Handicaps", HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("handicapsTitleID", "Handicaps", "Current player handicaps.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  }) 
+  
+  # Handicaps - temp. 
+  output$handicaps_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 60
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Major)) %>% 
+        data.frame()
+
+    data <- data[order(data$Handicap, decreasing=FALSE),]
+
+    data <- data %>% 
+      mutate( Rank = dense_rank(data$Handicap) )
+
+    data <- data[c('Rank', 'Player', 'Handicap')]
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      minRows = 5,
+      defaultPageSize = 5,
+      highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "left"
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+  })
+
+  # Handicaps. 
+  output$handicaps <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+   div(reactableOutput("handicaps_temp"), style = var_width, class="reactBox align")
+
+  })
+  
   
 
 
@@ -1524,7 +1953,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  #### Section 4: Players
+  #### Section 6: Players
   # There is no server logic for the Players tab- it's all contained in the about.html file. 
 
 
@@ -1534,7 +1963,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  #### Section 6: Results
+  #### Section 7: Results
 
   # Results Table - Title. 
   output$majorResultsTableTitle <- renderUI({
@@ -1742,18 +2171,7 @@ shinyServer(function(input, output, session) {
 
   })
 
-  #observeEvent(input$results_shinyalert, {
-  #  # Get JavaScript to check if the device is in Portrait or Landscape mode.
-  #  shinyjs::runjs("
-  #    if(window.innerHeight < window.innerWidth){
-  #      Shiny.setInputValue('landscapeMode', null);
-  #      Shiny.setInputValue('landscapeMode', 'yes');
-  #    } else{
-  #        Shiny.setInputValue('landscapeMode', null);
-  #        Shiny.setInputValue('landscapeMode', 'no');
-  #    }
-  #  ")
-  #})
+
 
 
 
