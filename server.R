@@ -633,8 +633,10 @@ shinyServer(function(input, output, session) {
       filterable = TRUE,
       searchable = FALSE,
       highlight = TRUE,
-      pagination = FALSE,
-      height = 500,
+      #pagination = FALSE,
+      #height = 500,
+      minRows = 10,
+      defaultPageSize = 10,
       theme = reactableTheme(
         style = list(fontSize = FONT_SIZE)
       ),
@@ -882,8 +884,10 @@ shinyServer(function(input, output, session) {
       filterable = TRUE,
       searchable = FALSE,
       highlight = TRUE,
-      pagination = FALSE,
-      height = 500,
+      #pagination = FALSE,
+      #height = 500,
+      minRows = 10,
+      defaultPageSize = 10,
       theme = reactableTheme(
         style = list(fontSize = FONT_SIZE)
       ),
@@ -2046,8 +2050,10 @@ shinyServer(function(input, output, session) {
       filterable = TRUE,
       searchable = FALSE,
       highlight = TRUE,
-      pagination = FALSE,
-      height = 500,
+      #pagination = FALSE,
+      #height = 500,
+      minRows = 10,
+      defaultPageSize = 10,
       theme = reactableTheme(
         style = list(fontSize = FONT_SIZE)
       ),
