@@ -152,6 +152,8 @@ shinyServer(function(input, output, session) {
       var elem = document.getElementsByClassName("navbar-collapse")[0]
       elem.setAttribute("aria-expanded", "false");
       elem.setAttribute("class", "navbar-collapse collapse");
+
+      window.scrollTo(0, 0);
     ')
   })
 
@@ -960,7 +962,13 @@ shinyServer(function(input, output, session) {
     if(input$isMobile){
       div(NULL)
     }else{
-        div(plotlyOutput("owgrTimeseries", width="1300px", height="600px"), style = 'display: inline-block;')
+        div(
+          shinycssloaders::withSpinner(
+            plotlyOutput("owgrTimeseries", width="1300px", height="600px"),
+            type = 8, 
+            color = "#233845"
+          ), style = 'display: inline-block;'
+        )
     }
 
   })
@@ -1354,16 +1362,25 @@ shinyServer(function(input, output, session) {
 
       data <- data[data$Wins %in% max(data$Wins), ]
 
-      #if(nrow(data) > 1){
-      #  text <- "(Multiple Golfers)"
-      #} else{
-      #  text <- data$Player
-      #}
+      if(nrow(data) > 1){
+        text <- " (Multiple Golfers)"
+      } else{
+
+        # Get first inital + surname to fit in info box. 
+        text <- paste0(
+          " (",
+          substr(data$Player, 1, 1),
+          ". ", 
+          sub(".* ", "", data$Player),
+          ")"
+        )
+
+      }
 
 
       labelIcon <- tags$i(class = "fas fa-trophy", style = "color:white;")
 
-      div(createInfoBox2(max(data$Wins), "(Multiple Golfers)", labelIcon, "Most Major Wins"), class = "combo-box combo-teal")
+      div(createInfoBox2(max(data$Wins), text, labelIcon, "Most Major Wins"), class = "combo-box combo-teal")
 
   })
 
@@ -1374,11 +1391,26 @@ shinyServer(function(input, output, session) {
     data <- major_results_data()
 
     data <- data[data$Major %in% max(data$Major), ]
-    data <- min(data$Handicap)
+    data <- data[data$Handicap %in% min(data$Handicap), ]
+
+    if(nrow(data) > 1){
+        text <- " (Multiple Golfers)"
+      } else{
+        
+        # Get first inital + surname to fit in info box. 
+        text <- paste0(
+          " (",
+          substr(data$Player, 1, 1),
+          ". ", 
+          sub(".* ", "", data$Player),
+          ")"
+        )
+
+      }
 
     labelIcon <- tags$i(class = "fas fa-angle-down", style = "color:white;")
 
-    div(createInfoBox(data, labelIcon, "Lowest Handicap"), class = "combo-box combo-blue")
+    div(createInfoBox2(min(data$Handicap), text, labelIcon, "Lowest Handicap"), class = "combo-box combo-blue")
 
   })
 

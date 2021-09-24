@@ -1055,12 +1055,12 @@ i:hover {
   }
     
   .label-mid {
-	padding-top:10px;
-	font-size:20px;
-	text-align:left;
-	width:125px;
-	display: inline-block;
-  }
+    /* padding-top: 10px; */
+    font-size: 15px;
+    text-align: left;
+    width: 125px;
+    display: inline-block;
+}
   
   .label-icon {
 	margin-right:10px;
@@ -1071,9 +1071,10 @@ i:hover {
   }
   
   .label-icon2 {
-	margin-left:0px;
-	font-size:26px;
-	color:#685d5d;
+	margin-right:10px;
+	float:right;
+	font-size:36px;
+	color:#FFFFFF;
 	opacity:0.8;
   }
   
