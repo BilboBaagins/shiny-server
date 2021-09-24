@@ -232,13 +232,83 @@ shinyServer(function(input, output, session) {
   })
 
   # FedEx Cup Standings / OWGR (Official World Golf Ranking).
-  owgr_data <- reactive({
-    data <- read.csv("data/ogr.csv", stringsAsFactors=FALSE, check.names=FALSE)
-    data$WORLD.RANKING.POSITION <- gsub("[[:alpha:]]", "", data$WORLD.RANKING.POSITION) %>%
-      as.numeric()
-    colnames(data) <- gsub("\\.", " ", colnames(data)) %>%
-      tolower()
+  fedex_data <- reactive({
+    
+    #data <- read.csv("data/ogr.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    #data$WORLD.RANKING.POSITION <- gsub("[[:alpha:]]", "", data$WORLD.RANKING.POSITION) %>%
+    #  as.numeric()
+    #colnames(data) <- gsub("\\.", " ", colnames(data)) %>%
+    #  tolower()
+
+    # Connect to your MongoDB instance.
+    con <- mongo(
+        collection = "data",
+        db = "major_results",
+        url = url,
+        verbose = FALSE,
+        options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    # Make sure it's in the correct order. 
+    data <- data[order(-data$Major, -data$Score),]
+
+    # Disconnect
+    rm(con)
+
+    data$Year <- lubridate::year(lubridate::dmy(data$Date))
+
+    temp <- data.frame()
+
+    # For loop to do backfill.
+    for(year in sort(unique(data$Year))){
+
+        # Subset data to the most recent year. 
+        #data <- data[data$Year %in% max(data$Year), ]
+
+        fedex <- data[data$Year %in% year, ]
+
+        # Assign points based on finishing position. 
+        fedex <- fedex %>% 
+            group_by(Major) %>% 
+            # Handle playoff.
+            mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
+            data.frame()
+
+        pts_tbl <- data.frame(Pos = 1:6, Pts = c(650, 500, 400, 300, 200, 100))
+
+        fedex <- left_join(fedex, pts_tbl, by=c("Pos" = "Pos"))
+
+        fedex[is.na(fedex$Pts),]$Pts <- 0
+
+        fedex <- fedex %>% 
+            group_by(Player) %>%
+            summarise(
+                Year = year,
+                Events = n(),
+                Score = sum(Score),
+                #Weighted_Score_sum = sum(Weighted_Score),
+                FedEx_Points = sum(Pts), 
+                #Weighted_Pts_sum = sum(Weighted_Pts)
+            ) %>% data.frame() %>% 
+            arrange(-FedEx_Points)
+
+         #Assign a rank based on FedEx Cup Points
+        fedex <- fedex %>% 
+            group_by(Year) %>% 
+            mutate(Pos = min_rank(-FedEx_Points)) %>% 
+            data.frame()
+
+        temp <- rbind(temp, fedex)
+
+    }
+
+    data <- temp
+    
     return(data)
+
   })
 
   # Players (lookup table).
@@ -326,7 +396,8 @@ shinyServer(function(input, output, session) {
     # Set up constants.
     N <- 8
     COST <- 0.5
-    weights <- (10:2) / 10.5
+    #weights <- (10:2) / 10.5
+    weights <- (10:2) / 10
 
     temp <- data.frame()
 
@@ -604,10 +675,12 @@ shinyServer(function(input, output, session) {
   # FedEx Cup Table - Title.
   output$fedExCupMainTableTitle <- renderUI({
 
+    data <- fedex_data()
+
     div(
-      div("FedEx Cup", HTML("<i id='fedExCupMainTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div(paste0("FedEx Cup Standings (", max(data$Year), ")"), HTML("<i id='fedExCupMainTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
-      shinyBS::bsPopover("fedExCupMainTitleID", "FedEx Cup Standings", "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
+      shinyBS::bsPopover("fedExCupMainTitleID", paste0("FedEx Cup Standings (", max(data$Year), ")"), "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
       class="align"
     )
 
@@ -628,29 +701,92 @@ shinyServer(function(input, output, session) {
     # Load data. 
     # TO DO:
     # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
-    data <- owgr_data()
-    data$'average ranking points' <- dplyr::coalesce(data$'average ranking points', 0)
-    data$'events played' <- dplyr::coalesce(data$'events played', 0)
+    data <- fedex_data()
+    data$Score <- dplyr::coalesce(data$Score, 0)
+    data$Events <- dplyr::coalesce(data$Events, 0)
     players_data <- players_data()
+
+
+    # Load major_results_data.
+    major_results_data <- major_results_data()
+
+    # Create high-level major results data.
+    major_results_data_temp1 <- major_results_data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      # Remove any playoff non-winners.
+      filter(Position == min(Position)) %>% 
+      select(-playoff_win, -Position) %>%
+      data.frame()
+
+    # Supplementary high-level major stats,
+    major_results_data_temp2 <- major_results_data %>%       
+      group_by(Major) %>% 
+      mutate(Field = n()) %>% 
+      mutate(Mean_Score = round(mean(Score), 1)) %>% 
+      mutate(Median_Score = round(median(Score), 1)) %>% 
+      mutate(Mean_Handicap = round(mean(Handicap), 1)) %>% 
+      mutate(Median_Handicap = round(median(Handicap), 1)) %>% 
+      select(Major, Field, Mean_Score, Median_Score, Mean_Handicap, Median_Handicap) %>%
+      unique() %>% 
+      data.frame() 
+
+    # Join into one view and rename some columns. 
+    major_results_data <- left_join(major_results_data_temp1, major_results_data_temp2) %>% 
+      rename(Winner = Player) %>%
+      rename('Mean Handicap' = Mean_Handicap) %>%
+      rename("Median Handicap" = Median_Handicap) %>%
+      rename("Mean Score" = Mean_Score) %>%
+      rename("Median Score" = Median_Score) %>%
+      #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      select(Major, Date, Venue, Field, Winner, Score, Handicap)
+
+    # Convert to date field.
+    major_results_data$Date <- lubridate::dmy(major_results_data$Date)
+
+    major_winners <- table(major_results_data$Winner) %>% data.frame()
+    major_winners <- major_winners[order(-major_winners$Freq), ]
+
+    data <- dplyr::left_join(data, major_winners, by = c("Player" = "Var1"))
+    data <- data %>% 
+      rename('Major Wins' = Freq, "FedEx Points" = FedEx_Points)
+
 
     data <- data %>%
       select(
-        "world ranking position", 
-        "name", 
-        "average ranking points", 
-        "events played", 
-        "major wins"
+        "Year", 
+        "Pos", 
+        "Player", 
+        "FedEx Points", 
+        "Events", 
+        "Major Wins"
       ) %>% 
-      rename("Rank" = "world ranking position") %>%
-      rename(Name = name) %>%
-      rename("Average Ranking Points" = "average ranking points") %>%
-      rename("Events Played" = "events played") %>%
-      rename("Major Wins" = "major wins")  
+        rename(
+          "Rank" = "Pos",
+          "Events Played" = "Events"
+          )
+
+    # Replace NAs with 0 in Major wins column. 
+    data$'Major Wins' <- dplyr::coalesce(data$'Major Wins', 0)
 
 
     # Sticky column CSS.
     sticky_style_one <- list(position = "sticky", left = 0, background = "#fff", zIndex = 1)
     sticky_style_two <- list(position = "sticky", left = var_width_rank, background = "#fff", zIndex = 1, borderRight = "1px solid #eee")
+
+    data <- data %>% select(-'Major Wins') 
+
+    # Subset data for current season/year. 
+    data <- data[data$Year %in% max(data$Year), ]
 
     # Build the data table.
     reactable(
@@ -676,7 +812,7 @@ shinyServer(function(input, output, session) {
           #headerClass = "sticky left-col-1",
           align = "left"
         ),
-        Name = colDef(
+        Player = colDef(
           html = TRUE,
           minWidth = 200,
           maxWidth = 200,
@@ -692,27 +828,32 @@ shinyServer(function(input, output, session) {
             paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
           }
         ),
-        'Major Wins' = colDef(
-          minWidth = 200,
-          maxWidth = 200,
-          width = 200,
-          cell = function(value){
-            rating_stars(value)
-          }
+        'Year' = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          #class = "sticky left-col-1",
+          #headerClass = "sticky left-col-1",
+          align = "left"
         ),
-        'Average Ranking Points' = colDef(
+        'FedEx Points' = colDef(
           align = "left", 
           cell = function(value){
-            width <- paste0(value / max(data$'Average Ranking Points') * 100, "%")
-            bar_chart(format(round(value, 2), nsmall = 2), width = width, background = "#e1e1e1")
-          }
+            width <- paste0(round(value / max(data$'FedEx Points') * 100), "%")
+            bar_chart(format(round(value, 0), nsmall = 0), width = width, fill = "#67c9c5", background = "#e1e1e1")
+          } #57636b
         ),
         'Events Played' = colDef(
-          align = "left", 
-          cell = function(value){
-            width <- paste0(value / max(data$'Events Played') * 100, "%")
-            bar_chart(value, width = width, fill = "#fc5185", background = "#e1e1e1")
-          }
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          #class = "sticky left-col-1",
+          #headerClass = "sticky left-col-1",
+          align = "left"
         )
       )
     )
@@ -730,6 +871,219 @@ shinyServer(function(input, output, session) {
      }
 
     div(reactableOutput("fedExCupMainTable_temp"), style = var_width, class="reactBox align")
+
+  })
+
+  # FedEx Cup History Table - Title.
+  output$fedExCupHistoryTableTitle <- renderUI({
+
+    data <- fedex_data()
+
+    div(
+      div("Past FedEx Cup Champions", HTML("<i id='fedExCupHistoryTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("fedExCupHistoryTitleID", "Past FedEx Cup Seasons", "FedEx Cup results for previous seasons.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # FedEx Cup History Table - temp.
+  output$fedExCupHistoryTable_temp <- renderReactable({
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 60
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+    # Load data. 
+    # TO DO:
+    # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
+    data <- fedex_data()
+    data$Score <- dplyr::coalesce(data$Score, 0)
+    data$Events <- dplyr::coalesce(data$Events, 0)
+    players_data <- players_data()
+
+
+    # Load major_results_data.
+    major_results_data <- major_results_data()
+
+    # Create high-level major results data.
+    major_results_data_temp1 <- major_results_data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      # Remove any playoff non-winners.
+      filter(Position == min(Position)) %>% 
+      select(-playoff_win, -Position) %>%
+      data.frame()
+
+    # Supplementary high-level major stats,
+    major_results_data_temp2 <- major_results_data %>%       
+      group_by(Major) %>% 
+      mutate(Field = n()) %>% 
+      mutate(Mean_Score = round(mean(Score), 1)) %>% 
+      mutate(Median_Score = round(median(Score), 1)) %>% 
+      mutate(Mean_Handicap = round(mean(Handicap), 1)) %>% 
+      mutate(Median_Handicap = round(median(Handicap), 1)) %>% 
+      select(Major, Field, Mean_Score, Median_Score, Mean_Handicap, Median_Handicap) %>%
+      unique() %>% 
+      data.frame() 
+
+    # Join into one view and rename some columns. 
+    major_results_data <- left_join(major_results_data_temp1, major_results_data_temp2) %>% 
+      rename(Winner = Player) %>%
+      rename('Mean Handicap' = Mean_Handicap) %>%
+      rename("Median Handicap" = Median_Handicap) %>%
+      rename("Mean Score" = Mean_Score) %>%
+      rename("Median Score" = Median_Score) %>%
+      #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      select(Major, Date, Venue, Field, Winner, Score, Handicap)
+
+    # Convert to date field.
+    major_results_data$Date <- lubridate::dmy(major_results_data$Date)
+
+    major_winners <- table(major_results_data$Winner) %>% data.frame()
+    major_winners <- major_winners[order(-major_winners$Freq), ]
+
+    data <- dplyr::left_join(data, major_winners, by = c("Player" = "Var1"))
+    data <- data %>% 
+      rename('Major Wins' = Freq, "FedEx Points" = FedEx_Points)
+
+
+    data <- data %>%
+      select(
+        "Year",
+        "Pos", 
+        "Player", 
+        "FedEx Points", 
+        "Events", 
+        "Major Wins"
+      ) %>% 
+        rename(
+          "Rank" = "Pos",
+          "Events Played" = "Events"
+          )
+
+    # Replace NAs with 0 in Major wins column. 
+    data$'Major Wins' <- dplyr::coalesce(data$'Major Wins', 0)
+
+    data_checkpoint <- data
+
+    # Create high-level summary of FedEx Cup winners for each season. 
+    data <- data[data$Rank %in% min(data$Rank), ]
+    # Remove current year.
+    data <- data[data$Year != max(data$Year), ]
+
+    data <- data %>% rename('All Time Major Wins' = 'Major Wins')
+
+
+    # Sticky column CSS.
+    sticky_style_one <- list(position = "sticky", left = 0, background = "#fff", zIndex = 1)
+    sticky_style_two <- list(position = "sticky", left = var_width_rank, background = "#fff", zIndex = 1, borderRight = "1px solid #eee")
+
+
+    # Build the data table.
+    reactable(
+      data,
+      filterable = TRUE,
+      searchable = FALSE,
+      highlight = TRUE,
+      #pagination = FALSE,
+      #height = 500,
+      minRows = 10,
+      defaultPageSize = 10,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
+      columns = list(
+        'Year' = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          #class = "sticky left-col-1",
+          #headerClass = "sticky left-col-1",
+          align = "left"
+        ),
+        'Player' = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          #class = "sticky left-col-1",
+          #headerClass = "sticky left-col-1",
+          align = "left"
+        ),
+        'FedEx Points' = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          #class = "sticky left-col-1",
+          #headerClass = "sticky left-col-1",
+          align = "left"
+        ),
+        'All Time Major Wins' = colDef(
+          minWidth = 200,
+          maxWidth = 200,
+          width = 200,
+          cell = function(value){
+            rating_stars(value)
+          }
+        )
+      ),
+      details = function(index) {
+        year_data <- data_checkpoint[data_checkpoint$Year == data$Year[index], ]
+        htmltools::div(style = "padding: 16px",
+          reactable(
+            year_data[
+              c("Rank",
+                "Player",
+                "FedEx Points",
+                "Events Played") # TO DO: would be useful here to show no. majors won that particular year/season...
+            ], 
+            outlined = TRUE,
+            highlight = TRUE
+          )
+        )
+      }
+    )
+
+
+
+
+
+
+
+  })
+
+  # FedEx Cup History Table.
+  output$fedExCupHistoryTable <- renderUI({
+
+   if(input$isMobile){
+     var_width <- "width:90%;"
+   } 
+     else{
+       var_width <- "width:90%;"
+     }
+
+    div(reactableOutput("fedExCupHistoryTable_temp"), style = var_width, class="reactBox align")
 
   })
 
@@ -801,7 +1155,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Rankings are calculated based on results over the last 8 major championships.</p>
+                            <p>Rankings are calculated based on results from the most recent 8 major championships. Recency plays key role in determining OWGR rankings (i.e. more recent majors hold more weight on your ranking)."</p>
                         </div>
                     </li>
                     <li class="timeline-item">
@@ -810,7 +1164,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Players cant recieve a negative ranking. The lowest ranking you can have is 0.</p>
+                            <p>Players will not recieve a negative ranking. The lowest ranking you can have is 0.</p>
                         </div>
                     </li>
                     <li class="timeline-item period">
@@ -923,9 +1277,11 @@ shinyServer(function(input, output, session) {
     # Load OWGR Timeseries data. 
     data <- owgr_tseries()
 
+    Event <- reorder(paste0("Major ", data$Ranking_Period, " (", lubridate::year(data$Date), ")"), data$Ranking_Period)
+
     # Plot
     p <- data %>%
-      ggplot( aes(x=reorder(paste0("Major ", Ranking_Period, " (", lubridate::year(Date), ")"), Ranking_Period), y=OWGR, group=Player, color=Player)) +
+      ggplot( aes(x=Event, y=OWGR, group=Player, color=Player)) +
         geom_line() +
         geom_point() +
         #scale_color_viridis(discrete = TRUE) +
@@ -1111,7 +1467,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Rankings are calculated based on results over the last 8 major championships.</p>
+                            <p>Rankings are calculated based on results over the last 8 major championships.</p><br><p>Recency plays key role in determining OWGR rankings (i.e. recent majors hold more weight on your ranking).</p>
                         </div>
                     </li>
                     <li class="timeline-item">
@@ -1120,7 +1476,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Players cant recieve a negative ranking. The lowest ranking you can have is 0.</p>
+                            <p>Players will not recieve a negative ranking. The lowest ranking you can have is 0.</p>
                         </div>
                     </li>
                     <li class="timeline-item period">
@@ -1136,7 +1492,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Players are deducted 0.5 ranking points on entry</p>
+                            <p>Each player is deducted 0.5 ranking points on entry to a major.</p>
                         </div>
                     </li>
                     <li class="timeline-item">
@@ -1145,7 +1501,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Points are awarded to top 6 places as follows; <br>
+                            <p>Points are awarded to the top 6 places as follows; <br>
                             <table style="width:70%">
                               <tr>
                                 <th>Place</th>
@@ -1185,11 +1541,10 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Previouly awarded points from past majors are weighted based on 
-                            recency. 
-                            Points awarded for the most recent major are worth full value while 
-                            points awarded for each preceding major reduce by 10% until fall out 
-                            of the rolling 8 major calculation.
+                            <p>Points awarded for the most recent major are worth full value.</p>
+                            <br>
+                            <p>Points awarded for each preceding major reduce by 10% in value until they fall out 
+                            of the calculation (i.e. they were awarded more than 8 majors ago and are therefore not taken into consideration).
                             </p>
                         </div>
                     </li>
@@ -1200,6 +1555,7 @@ shinyServer(function(input, output, session) {
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <p>
+                              Your total weighted points are calculated for the previous 8 majors.  
                             </p>
                         </div>
                     </li>
@@ -1209,11 +1565,21 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Finally, the players recency weighted stableford score over the 
-                              rolling 8 major window is summed and divided by 100, then added
-                              to the players OWGR score. This is intended to reward high-scoring 
-                              esults.
-                          </p>
+                            <p>
+                              Finally, your stableford scores over the previous 8 majors are summed and weighted in the same way as the points (described above). 
+                            </p>
+                              <br>
+                            <p>
+                              This weighted stableford score is then divided by 100 and added to your weighted points total. This is intended to reward high-scores posted in majors.
+                            </p>
+                            <br>
+                            <p>
+                              <table style="width:100%">
+                              <tr>
+                                <th>OWGR = Weighted Points - Cost of Entry + (Weighted Stableford Score / 100)</th>
+                              </tr>
+                            </table>
+                            </p>
                         </div>
                     </li>
                 </ul>

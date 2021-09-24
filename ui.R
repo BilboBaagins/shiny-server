@@ -76,6 +76,11 @@ shinyUI(
           div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;"),
           div(style='height:60px;')
+        ),
+        fluidRow(
+          div(uiOutput("fedExCupHistoryTableTitle"), style="text-align:center; margin-bottom:10px;"),
+          div(uiOutput("fedExCupHistoryTable"), style="text-align:center; margin-bottom:50px;"),
+          div(style='height:60px;')
         )
       ),
             
@@ -121,6 +126,7 @@ shinyUI(
         ),
         isMobile(),
         div(class="navbar-buffer"),
+        div(style="height:20px;"),
         fluidPage(
           fluidRow(style="text-align:center;", 
             column(6,
@@ -142,7 +148,7 @@ shinyUI(
               style="vertical-align:top; display:inline-block;"
             )
           ),
-          div(style="height:80px;"),
+          div(style="height:100px;"),
           fluidRow(
             column(6, 
               div(uiOutput("owgrTitle"), style="text-align:center; margin-bottom:10px;"),

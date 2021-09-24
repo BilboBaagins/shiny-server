@@ -70,8 +70,15 @@ rm(con)
 # Append/Edit data to mongoDB
 #-----------------------------
 
+data <- read.csv("../../Downloads/Major Results - Major Results.csv")
+data_new <- data[data$Major %in% c(20, 21, 22), ]
 
 
+# Append new data to MongoDB.
+con$insert(data_new)
+
+# Disconnect
+rm(con)
 
 
 
@@ -79,3 +86,11 @@ rm(con)
 
 # Delete data from mongoDB
 #-----------------------------
+
+# Delete
+con$remove(query = '{"Major":22}')
+con$remove(query = '{"Major":21}')
+con$remove(query = '{"Major":20}')
+
+# Read in data to check if it has been successfully deleted.
+data <- con$find(query = '{}')

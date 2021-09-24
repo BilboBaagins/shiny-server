@@ -30,16 +30,20 @@ source("mongoDB.R")
     # Set up constants.
     N <- 8
     COST <- 0.5
-    weights <- (10:2) / 10.5
+    #weights <- (10:2) / 10.5
+    weights <- (10:2) / 10
 
     temp <- data.frame()
 
     # For loop to do backfill.
     for(j in N:max(data$Major)){
 
+        # N:max(data$Major) here are all the ranking periods/majors that are to be 
+        #  taken into consideration for the OWGR Rnaking calculation.
         RANKING_PERIOD <- j
+        # max(RANKING_PERIOD) would be the most recent ranking period/major.
 
-        # Subset data to the most recent 10 majors. 
+        # Subset data to the most recent 8 majors. 
         owgr <- data %>% 
             #filter( Major %in% (max(data$Major)-(N-1)):max(data$Major) )
             filter( Major %in% ( (j-(N-1)):j ))
@@ -72,6 +76,7 @@ source("mongoDB.R")
             owgr[owgr$Major %in% Major,]$Weighted_Pts <- owgr[owgr$Major %in% Major,]$Pts * weights[i]
             i <- i + 1
         }
+        
 
         x <- owgr %>% 
             group_by(Player) %>%
@@ -85,7 +90,9 @@ source("mongoDB.R")
             ) %>% data.frame() %>% 
             arrange(-Weighted_Pts_sum)
 
+        # Apply the cost of entering a major (0.5)
         x$Cost <- x$Events * COST
+        # Add the players total weighted stableford score / 100 
         x$Add <- x$Weighted_Score_sum/100
 
         x$OWGR <- x$Weighted_Pts_sum - x$Cost + x$Add
