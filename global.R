@@ -38,6 +38,13 @@ createInfoBox <- function(value, iconName, text) {
   )
 }
 
+# Create a custom value / info box
+createInfoBox2 <- function(value, other_value, iconName, text) {
+  return(
+    div(div(div(value, class = "label-big2"), div(other_value, class="label-mid"), span(iconName, class = "label-icon"), class = "label-box"), div(text, class = "label-box-explainer"))
+  )
+}
+
 # Create a rating stars function.
 rating_stars <- function(rating) {
   star_icon <- function(empty = FALSE) {

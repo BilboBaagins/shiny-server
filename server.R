@@ -178,14 +178,14 @@ shinyServer(function(input, output, session) {
   major_schedule_data <- reactive({
     
     data <- data.frame(
-      Date = c("2021-01-05", "2021-01-06", "2021-01-07", "2021-01-08"),
-      Course = c("Glenlo Abbey", "Cradockstown", "Naas Golf Club", "St. Helens Bay"), 
-      Location = c("Galway", "Kildare", "Kildare", "Wexford"), 
-      'Defending Champion' = c("---", "Sean Whitson", "---", "Billy Archbold"), 
-      'Previous Major' = c("New Event Location", "2020-07-25", "New Event Location", "2019-08-24"), 
-      'FedEx Cup Points' = c(500, 600, 500, 600), 
-      lat = c(53.30153932321068, 53.20600158084217, 53.2491351564649, 52.232036548098975), 
-      lon = c(-9.099569139421591, -6.638881368349008, -6.644518363898139, -6.3249840192094835),
+      Date = c("2021-06-26", "2021-08-07", "2021-10-02"),
+      Course = c("Cradockstown Golf Club", "Tulfaris Golf Club", "Millicent Golf Club"), 
+      Location = c("Kildare", "Wicklow", "Kildare"), 
+      'Defending Champion' = c("Sean Whitson", "Darragh Sheehan", "---"), 
+      'Previous Major' = c("2020-07-25", "2018-05-06", "New Event Location"), 
+      'FedEx Cup Points' = c(500, 500, 500), 
+      lat = c(53.205828972592265, 53.12509004778715, 53.28098556258424), 
+      lon = c(-6.639070763009378, -6.559711595660492, -6.688538741988058),
       check.names=FALSE
     )
 
@@ -216,6 +216,9 @@ shinyServer(function(input, output, session) {
 
     # Read data form collection into data.frame. 
     data <- con$find(query = '{}')
+
+    # Make sure it's in the correct order. 
+    data <- data[order(-data$Major, -data$Score),]
 
     # Disconnect
     rm(con)
@@ -295,7 +298,27 @@ shinyServer(function(input, output, session) {
   # OWGR Timeseries Data. 
   owgr_tseries <- reactive({
 
-    data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    # This should contain the same info as is being read from the MongoDB connection below. 
+    #data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    
+    # Connect to your MongoDB instance.
+    con <- mongo(
+      collection = "data",
+      db = "major_results",
+      url = url,
+      verbose = FALSE,
+      options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    # Make sure it's in the correct order. 
+    data <- data[order(-data$Major, -data$Score),]
+
+    # Disconnect
+    rm(con)
+    
     data$Events <- 1
 
     # Set up constants.
@@ -759,6 +782,135 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # FedEx Infographic
+  output$fedexInfogrphic <- renderUI({
+
+    div(style = "margin:50px;",
+      HTML('    
+        <div class="row example-centered">
+            <div class="col-md-12 example-title">
+                <h2>FedEx Rankings Explained</h2>
+            </div>
+            <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2">
+                <ul class="timeline timeline-centered">
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Note 1)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Rankings are calculated based on results over the last 8 major championships.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Note 2)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Players cant recieve a negative ranking. The lowest ranking you can have is 0.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item period">
+                        <div class="timeline-info"></div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h2 class="timeline-title">Calculation</h2>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 1)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Players are deducted 0.5 ranking points on entry</p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 2)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Points are awarded to top 6 places as follows; <br>
+                            <table style="width:70%">
+                              <tr>
+                                <th>Place</th>
+                                <th>Points</th>
+                              </tr>
+                              <tr>
+                                <td>1st</td>
+                                <td>6.5</td>
+                              </tr>
+                              <tr>
+                                <td>2nd</td>
+                                <td>5</td>
+                              </tr>
+                              <tr>
+                                <td>3rd</td>
+                                <td>4</td>
+                              </tr>
+                              <tr>
+                                <td>4th</td>
+                                <td>3</td>
+                              </tr>
+                              <tr>
+                                <td>5th</td>
+                                <td>2</td>
+                              </tr>
+                              <tr>
+                                <td>6th</td>
+                                <td>1</td>
+                              </tr>
+                            </table>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 3)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Previouly awarded points from past majors are weighted based on 
+                            recency. 
+                            Points awarded for the most recent major are worth full value while 
+                            points awarded for each preceding major reduce by 10% until fall out 
+                            of the rolling 8 major calculation.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 4)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="timeline-item">
+                        <div class="timeline-info">
+                            <span>Step 5)</span>
+                        </div>
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <p>Finally, the players recency weighted stableford score over the 
+                              rolling 8 major window is summed and divided by 100, then added
+                              to the players OWGR score. This is intended to reward high-scoring 
+                              esults.
+                          </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>'
+    ))
+
+  })
+
 
 
   #### Section 4: OWGR
@@ -775,7 +927,7 @@ shinyServer(function(input, output, session) {
         geom_line() +
         geom_point() +
         #scale_color_viridis(discrete = TRUE) +
-        ggtitle("OWGR Timeseries") +
+        ggtitle("OWGR Ranking Timeseries") +
         theme_ipsum() +
         ylab("OWGR") +
         xlab("Major Timeline") +
@@ -817,7 +969,7 @@ shinyServer(function(input, output, session) {
   output$owgrMainTableTitle <- renderUI({
 
     div(
-      div("OWGR", HTML("<i id='owgrMainTableTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div("OWGR Rankings", HTML("<i id='owgrMainTableTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
       shinyBS::bsPopover("owgrMainTableTitleID", "OWGR Standings", "Official World Golf Rankings for the PAP Pro Tour.", placement = "bottom", trigger = "hover"),
       class="align"
@@ -941,7 +1093,7 @@ shinyServer(function(input, output, session) {
       HTML('    
         <div class="row example-centered">
             <div class="col-md-12 example-title">
-                <h2>Rankings Explained</h2>
+                <h2>OWGR Rankings Explained</h2>
             </div>
             <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2">
                 <ul class="timeline timeline-centered">
@@ -1071,12 +1223,172 @@ shinyServer(function(input, output, session) {
 
   #### Section 5: Stats
 
+  #owgrHeadlineBox
+  output$owgrHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- owgr_tseries()
+    players_data <- players_data()
+
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Ranking_Period)) %>% 
+        data.frame()
+
+    data <- data[order(data$OWGR, decreasing=TRUE),]
+
+    data <- data %>%
+      rename('Ranking Period' = Ranking_Period) %>% 
+      rename('No. Events Entered' = Events) %>% 
+      rename('Score' = Score_sum) %>% 
+      rename('Weighted Score' = Weighted_Score_sum) %>% 
+      rename('Pts' = Pts_sum) %>% 
+      rename('Weighted Pts' = Weighted_Pts_sum) 
+      
+      data <- data %>% 
+        mutate( Rank = dense_rank(-data$OWGR) )
+
+      data <- data %>% select(
+        Rank, 
+        Player, 
+        OWGR
+      )
+
+      data$OWGR <- round(data$OWGR, 2)
+
+      # Get the current top ranked golfer. 
+      top_ranked_golfer <- head(data, 1)
+      # Get first inital + surname to fit in info box. 
+      top_ranked_golfer <- paste0(
+        substr(top_ranked_golfer$Player, 1, 1),
+        ". ", 
+        sub(".* ", "", top_ranked_golfer$Player)
+      )
+
+      labelIcon <- tags$i(class = "fas fa-list-ol", style = "color:white;")
+
+      div(createInfoBox(top_ranked_golfer, labelIcon, "No. 1 Ranked Player"), class = "combo-box combo-dark")
+
+  })
+
+  #fedExHeadlineBox
+  output$fedExHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- owgr_tseries()
+    players_data <- players_data()
+
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Ranking_Period)) %>% 
+        data.frame()
+
+    data <- data[order(data$OWGR, decreasing=TRUE),]
+
+    data <- data %>%
+      rename('Ranking Period' = Ranking_Period) %>% 
+      rename('No. Events Entered' = Events) %>% 
+      rename('Score' = Score_sum) %>% 
+      rename('Weighted Score' = Weighted_Score_sum) %>% 
+      rename('Pts' = Pts_sum) %>% 
+      rename('Weighted Pts' = Weighted_Pts_sum) 
+      
+      data <- data %>% 
+        mutate( Rank = dense_rank(-data$OWGR) )
+
+      data <- data %>% select(
+        Rank, 
+        Player, 
+        OWGR
+      )
+
+      data$OWGR <- round(data$OWGR, 2)
+
+      # Get the current top ranked golfer. 
+      top_ranked_golfer <- head(data, 1)
+      # Get first inital + surname to fit in info box. 
+      top_ranked_golfer <- paste0(
+        substr(top_ranked_golfer$Player, 1, 1),
+        ". ", 
+        sub(".* ", "", top_ranked_golfer$Player)
+      )
+
+      labelIcon <- tags$i(class = "fab fa-fedex", style = "color:white;")
+
+      div(createInfoBox(top_ranked_golfer, labelIcon, "FedEx Cup Leader"), class = "combo-box combo-grey")
+
+  })
+
+  #majorWinsHeadlineBox
+  output$majorWinsHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- major_results_data()
+    players_data <- players_data()
+
+    data <- data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      select(-playoff_win) %>%
+      data.frame() %>%
+      # Create final count & rank of top three finishes. 
+      group_by(Player) %>%
+      summarise(Top1 = n()) %>%
+      arrange(-Top1, Player) %>%
+      mutate( Rank = dense_rank(-Top1) ) %>%
+      data.frame() %>% 
+      rename('Wins' = Top1) %>% 
+      select(Rank, Player, 'Wins')
+      labelIcon <- tags$i(class = "fas fa-list-ol", style = "color:white;")
+
+      data <- data[data$Wins %in% max(data$Wins), ]
+
+      #if(nrow(data) > 1){
+      #  text <- "(Multiple Golfers)"
+      #} else{
+      #  text <- data$Player
+      #}
+
+
+      labelIcon <- tags$i(class = "fas fa-trophy", style = "color:white;")
+
+      div(createInfoBox2(max(data$Wins), "(Multiple Golfers)", labelIcon, "Most Major Wins"), class = "combo-box combo-teal")
+
+  })
+
+  #lowestHanicapHeadlineBox
+  output$lowestHanicapHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- major_results_data()
+
+    data <- data[data$Major %in% max(data$Major), ]
+    data <- min(data$Handicap)
+
+    labelIcon <- tags$i(class = "fas fa-angle-down", style = "color:white;")
+
+    div(createInfoBox(data, labelIcon, "Lowest Handicap"), class = "combo-box combo-blue")
+
+  })
+
+
   # OWGR -----------
   # OWGR - Title. 
   output$owgrTitle <- renderUI({
 
     div(
-      div("OWGR", HTML("<i id='owgrTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div("OWGR Rankings", HTML("<i id='owgrTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
       shinyBS::bsPopover("owgrTitleID", "OWGR Standings", "Official World Golf Rankings for the PAP Pro Tour.", placement = "bottom", trigger = "hover"),
       class="align"
@@ -1196,7 +1508,7 @@ shinyServer(function(input, output, session) {
   output$fedExCupTitle <- renderUI({
 
     div(
-      div("FedEx Cup", HTML("<i id='fedExCupTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div("FedEx Cup Standings", HTML("<i id='fedExCupTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
       shinyBS::bsPopover("fedExCupTitleID", "FedEx Cup Standings", "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
       class="align"

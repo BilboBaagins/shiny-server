@@ -122,6 +122,27 @@ shinyUI(
         isMobile(),
         div(class="navbar-buffer"),
         fluidPage(
+          fluidRow(style="text-align:center;", 
+            column(6,
+              column(6, 
+                div(uiOutput("owgrHeadlineBox"), style="vertical-align:top; display:inline-block;")
+              ),
+              column(6,
+                div(uiOutput("fedExHeadlineBox"), style="vertical-align:top; display:inline-block;")
+              ),
+              style="vertical-align:top; display:inline-block;"
+            ),
+            column(6,
+              column(6, 
+                div(uiOutput("majorWinsHeadlineBox"), style="vertical-align:top; display:inline-block;")
+              ),
+              column(6,
+                div(uiOutput("lowestHanicapHeadlineBox"), style="vertical-align:top; display:inline-block;")
+              ),
+              style="vertical-align:top; display:inline-block;"
+            )
+          ),
+          div(style="height:80px;"),
           fluidRow(
             column(6, 
               div(uiOutput("owgrTitle"), style="text-align:center; margin-bottom:10px;"),
