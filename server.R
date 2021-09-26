@@ -1650,48 +1650,118 @@ shinyServer(function(input, output, session) {
   output$fedExHeadlineBox <- renderUI({
 
     # Load data. 
-    data <- owgr_tseries()
+    # TO DO:
+    # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
+    data <- fedex_data()
+    data$Score <- dplyr::coalesce(data$Score, 0)
+    data$Events <- dplyr::coalesce(data$Events, 0)
     players_data <- players_data()
 
-    # Most recent handicaps from latest major attended.   
-    data <- data %>% 
-        group_by(Player) %>%
-        top_n(1, abs(Ranking_Period)) %>% 
-        data.frame()
 
-    data <- data[order(data$OWGR, decreasing=TRUE),]
+    # Load major_results_data.
+    major_results_data <- major_results_data()
+
+    # Create high-level major results data.
+    major_results_data_temp1 <- major_results_data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      # Remove any playoff non-winners.
+      filter(Position == min(Position)) %>% 
+      select(-playoff_win, -Position) %>%
+      data.frame()
+
+    # Supplementary high-level major stats,
+    major_results_data_temp2 <- major_results_data %>%       
+      group_by(Major) %>% 
+      mutate(Field = n()) %>% 
+      mutate(Mean_Score = round(mean(Score), 1)) %>% 
+      mutate(Median_Score = round(median(Score), 1)) %>% 
+      mutate(Mean_Handicap = round(mean(Handicap), 1)) %>% 
+      mutate(Median_Handicap = round(median(Handicap), 1)) %>% 
+      select(Major, Field, Mean_Score, Median_Score, Mean_Handicap, Median_Handicap) %>%
+      unique() %>% 
+      data.frame() 
+
+    # Join into one view and rename some columns. 
+    major_results_data <- left_join(major_results_data_temp1, major_results_data_temp2) %>% 
+      rename(Winner = Player) %>%
+      rename('Mean Handicap' = Mean_Handicap) %>%
+      rename("Median Handicap" = Median_Handicap) %>%
+      rename("Mean Score" = Mean_Score) %>%
+      rename("Median Score" = Median_Score) %>%
+      #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      select(Major, Date, Venue, Field, Winner, Score, Handicap)
+
+    # Convert to date field.
+    major_results_data$Date <- lubridate::dmy(major_results_data$Date)
+
+    major_winners <- table(major_results_data$Winner) %>% data.frame()
+    major_winners <- major_winners[order(-major_winners$Freq), ]
+
+    data <- dplyr::left_join(data, major_winners, by = c("Player" = "Var1"))
+    data <- data %>% 
+      rename('Major Wins' = Freq, "FedEx Points" = FedEx_Points)
+
 
     data <- data %>%
-      rename('Ranking Period' = Ranking_Period) %>% 
-      rename('No. Events Entered' = Events) %>% 
-      rename('Score' = Score_sum) %>% 
-      rename('Weighted Score' = Weighted_Score_sum) %>% 
-      rename('Pts' = Pts_sum) %>% 
-      rename('Weighted Pts' = Weighted_Pts_sum) 
-      
-      data <- data %>% 
-        mutate( Rank = dense_rank(-data$OWGR) )
+      select(
+        "Year", 
+        "Pos", 
+        "Player", 
+        "FedEx Points", 
+        "Events", 
+        "Major Wins"
+      ) %>% 
+        rename(
+          "Rank" = "Pos",
+          "Events Played" = "Events"
+          )
 
-      data <- data %>% select(
-        Rank, 
-        Player, 
-        OWGR
-      )
+    # Replace NAs with 0 in Major wins column. 
+    data$'Major Wins' <- dplyr::coalesce(data$'Major Wins', 0)
 
-      data$OWGR <- round(data$OWGR, 2)
+    data <- data %>% select(-'Major Wins') 
 
-      # Get the current top ranked golfer. 
-      top_ranked_golfer <- head(data, 1)
+    # Subset data for current season/year. 
+    data <- data[data$Year %in% max(data$Year), ]
+
+    # Subset data for top ranked golfer(s).
+    data <- data[data$'FedEx Points' == max(data$'FedEx Points'), ]
+
+    if(nrow(data) > 1){
+      text <- " (Multiple  Golfers)"
+
+      labelIcon <- tags$i(class = "fab fa-fedex", style = "color:white;")
+
+      div(createInfoBox2("+ ", text, labelIcon, "FedEx Cup Leader"), class = "combo-box combo-grey")
+
+    } else{
+
       # Get first inital + surname to fit in info box. 
-      top_ranked_golfer <- paste0(
-        substr(top_ranked_golfer$Player, 1, 1),
+      text <- paste0(
+        " (",
+        substr(data$Player, 1, 1),
         ". ", 
-        sub(".* ", "", top_ranked_golfer$Player)
+        sub(".* ", "", data$Player),
+        ")"
       )
 
       labelIcon <- tags$i(class = "fab fa-fedex", style = "color:white;")
 
-      div(createInfoBox(top_ranked_golfer, labelIcon, "FedEx Cup Leader"), class = "combo-box combo-grey")
+      div(createInfoBox(text, labelIcon, "FedEx Cup Leader"), class = "combo-box combo-grey")
+
+    }
+
+
 
   })
 
@@ -1753,11 +1823,23 @@ shinyServer(function(input, output, session) {
   #lowestHanicapHeadlineBox
   output$lowestHanicapHeadlineBox <- renderUI({
 
-    # Load data. 
+    # Load data.
     data <- major_results_data()
+    players_data <- players_data()
 
-    data <- data[data$Major %in% max(data$Major), ]
-    data <- data[data$Handicap %in% min(data$Handicap), ]
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Major)) %>% 
+        data.frame()
+
+    data <- data[order(data$Handicap, decreasing=FALSE),]
+
+    data <- data %>% 
+      mutate( Rank = dense_rank(data$Handicap) )
+
+    # Subset data to lowest handicap. 
+    data <- data[data$Handicap == min(data$Handicap), ]
 
     if(nrow(data) > 1){
         text <- " (Multiple Golfers)"
@@ -1905,8 +1987,10 @@ shinyServer(function(input, output, session) {
   # FedEx Cup - Title. 
   output$fedExCupTitle <- renderUI({
 
+    data <- fedex_data()
+
     div(
-      div("FedEx Cup Standings", HTML("<i id='fedExCupTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div(paste0("FedEx Cup Standings (", max(data$Year), ")"), HTML("<i id='fedExCupTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
       shinyBS::bsPopover("fedExCupTitleID", "FedEx Cup Standings", "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
       class="align"
@@ -1927,20 +2011,91 @@ shinyServer(function(input, output, session) {
       }
 
     # Load data. 
-    data <- owgr_data()
-    data$'average ranking points' <- dplyr::coalesce(data$'average ranking points', 0)
-    data$'events played' <- dplyr::coalesce(data$'events played', 0)
+    # TO DO:
+    # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
+    data <- fedex_data()
+    data$Score <- dplyr::coalesce(data$Score, 0)
+    data$Events <- dplyr::coalesce(data$Events, 0)
     players_data <- players_data()
 
+
+    # Load major_results_data.
+    major_results_data <- major_results_data()
+
+    # Create high-level major results data.
+    major_results_data_temp1 <- major_results_data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      # Remove any playoff non-winners.
+      filter(Position == min(Position)) %>% 
+      select(-playoff_win, -Position) %>%
+      data.frame()
+
+    # Supplementary high-level major stats,
+    major_results_data_temp2 <- major_results_data %>%       
+      group_by(Major) %>% 
+      mutate(Field = n()) %>% 
+      mutate(Mean_Score = round(mean(Score), 1)) %>% 
+      mutate(Median_Score = round(median(Score), 1)) %>% 
+      mutate(Mean_Handicap = round(mean(Handicap), 1)) %>% 
+      mutate(Median_Handicap = round(median(Handicap), 1)) %>% 
+      select(Major, Field, Mean_Score, Median_Score, Mean_Handicap, Median_Handicap) %>%
+      unique() %>% 
+      data.frame() 
+
+    # Join into one view and rename some columns. 
+    major_results_data <- left_join(major_results_data_temp1, major_results_data_temp2) %>% 
+      rename(Winner = Player) %>%
+      rename('Mean Handicap' = Mean_Handicap) %>%
+      rename("Median Handicap" = Median_Handicap) %>%
+      rename("Mean Score" = Mean_Score) %>%
+      rename("Median Score" = Median_Score) %>%
+      #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      select(Major, Date, Venue, Field, Winner, Score, Handicap)
+
+    # Convert to date field.
+    major_results_data$Date <- lubridate::dmy(major_results_data$Date)
+
+    major_winners <- table(major_results_data$Winner) %>% data.frame()
+    major_winners <- major_winners[order(-major_winners$Freq), ]
+
+    data <- dplyr::left_join(data, major_winners, by = c("Player" = "Var1"))
+    data <- data %>% 
+      rename('Major Wins' = Freq, "FedEx Points" = FedEx_Points)
+
+
     data <- data %>%
-      rename(Rank = "world ranking position") %>% 
-      rename(Player = name) %>% 
-      rename("FedEx Cup Points" = "average ranking points") %>% 
       select(
-        Rank, 
-        Player, 
-        "FedEx Cup Points"
-      )
+        "Year", 
+        "Pos", 
+        "Player", 
+        "FedEx Points", 
+        "Events", 
+        "Major Wins"
+      ) %>% 
+        rename(
+          "Rank" = "Pos",
+          "Events Played" = "Events"
+          )
+
+    # Replace NAs with 0 in Major wins column. 
+    data$'Major Wins' <- dplyr::coalesce(data$'Major Wins', 0)
+
+    data <- data %>% select(-'Major Wins') 
+
+    # Subset data for current season/year. 
+    data <- data[data$Year %in% max(data$Year), ]
+
+    data <- data %>% select("Rank", "Player", "FedEx Points")
 
     # Build the data table.
     reactable(
@@ -2154,7 +2309,12 @@ shinyServer(function(input, output, session) {
         Score == min(Score) ~ 3)
       ) %>%
       select(-playoff_win) %>%
-      data.frame() %>%
+      data.frame() 
+      
+      # Remove playoff loser. 
+      data <- data[data$Position == 1, ]
+      
+      data <- data %>%
       # Create final count & rank of top three finishes. 
       group_by(Player) %>%
       summarise(Top1 = n()) %>%
@@ -2791,7 +2951,7 @@ shinyServer(function(input, output, session) {
         Handicap = colDef(
           minWidth = var_width_rank,
           maxWidth = var_width_rank,
-          width = var_width_rank,
+          width = var_width,
           align = "center"
         ),
         Venue = colDef(
