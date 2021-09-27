@@ -185,7 +185,7 @@ shinyServer(function(input, output, session) {
       Location = c("Kildare", "Wicklow", "Kildare"), 
       'Defending Champion' = c("Sean Whitson", "Darragh Sheehan", "---"), 
       'Previous Major' = c("2020-07-25", "2018-05-06", "New Event Location"), 
-      'FedEx Cup Points' = c(500, 500, 500), 
+      'FedEx Cup Points' = c(650, 650, 650), 
       lat = c(53.205828972592265, 53.12509004778715, 53.28098556258424), 
       lon = c(-6.639070763009378, -6.559711595660492, -6.688538741988058),
       check.names=FALSE
@@ -557,7 +557,7 @@ shinyServer(function(input, output, session) {
                   "FedEx Cup Points <b>", map_data$'FedEx Cup Points', "</b><br>"
                 )
               ) %>% 
-              addFullscreenControl() %>% 
+              #addFullscreenControl() %>% 
               addMeasure(
                 position = "bottomleft",
                 primaryLengthUnit = "feet",
