@@ -81,6 +81,9 @@ shinyUI(
           div(uiOutput("fedExCupHistoryTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("fedExCupHistoryTable"), style="text-align:center; margin-bottom:50px;"),
           div(style='height:60px;')
+        ),
+        fluidRow(
+          uiOutput("fedexInfogrphic")
         )
       ),
             

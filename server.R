@@ -329,7 +329,7 @@ shinyServer(function(input, output, session) {
         "Feidhlim Dowling",
         "Mark Donnelly",
         "Niall Devane",
-        "Sean McDermott",
+        "Seanie McDermott",
         "Oisin Tyrell",
         "Eoin Messitt",
         "Stephen Pigott",
@@ -476,7 +476,105 @@ shinyServer(function(input, output, session) {
 
   })
 
+  owgr_players_results <- reactive({
 
+    # Get the major results data for the expandable table.
+    # Connect to your MongoDB instance.
+    con <- mongo(
+        collection = "data",
+        db = "major_results",
+        url = url,
+        verbose = FALSE,
+        options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    # Make sure it's in the correct order. 
+    data <- data[order(-data$Major, -data$Score),]
+
+    # Disconnect
+    rm(con)
+
+    # Set up constants.
+    weights <- (10:2) / 10
+
+    last_eight_majors <- head(order(unique(data$Major)), 8)
+    last_eight_majors_df <- data[data$Major %in% last_eight_majors, ]
+    last_eight_majors_df <- unique(last_eight_majors_df[c("Major", "Date", "Venue") ])
+
+    data <- data[data$Major %in% last_eight_majors, ]
+
+    # major_results_data[major_results_data$Player %in% "Billy Archbold", ]
+
+
+
+    # Assign points based on finishing position. 
+    data <- data %>% 
+        group_by(Major) %>% 
+        # Handle playoff.
+        mutate(Pos = min_rank(- (Score + coalesce(10 - playoff_win, 0)) )) %>% 
+        data.frame()
+
+    # Apply recency weighting to past N majors.
+    data$Weighted_Score <- NA
+    i <- 1
+    for(Major in unique(data$Major) ){
+        data[data$Major %in% Major,]$Weighted_Score <- data[data$Major %in% Major,]$Score * weights[i]
+        i <- i + 1
+    }
+
+    pts_tbl <- data.frame(Pos = 1:6, Pts = c(6.5, 5:1))
+
+    data <- left_join(data, pts_tbl, by=c("Pos" = "Pos"))
+
+    data[is.na(data$Pts),]$Pts <- 0
+
+    # Apply recency weighting to past N majors No. Events.
+    data$Weighted_Pts <- NA
+    i <- 1
+    for(Major in unique(data$Major) ){
+        data[data$Major %in% Major,]$Weighted_Pts <- data[data$Major %in% Major,]$Pts * weights[i]
+        i <- i + 1
+    }
+
+    return(data)
+
+  })
+
+  # Data frame of the previous eight majors.
+  last_eight_majors_df <- reactive({
+
+    # Get the major results data for the expandable table.
+    # Connect to your MongoDB instance.
+    con <- mongo(
+        collection = "data",
+        db = "major_results",
+        url = url,
+        verbose = FALSE,
+        options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    # Make sure it's in the correct order. 
+    data <- data[order(-data$Major, -data$Score),]
+
+    # Disconnect
+    rm(con)
+
+    # Set up constants.
+    weights <- (10:2) / 10
+
+    last_eight_majors <- head(order(unique(data$Major)), 8)
+    last_eight_majors_df <- data[data$Major %in% last_eight_majors, ]
+    last_eight_majors_df <- unique(last_eight_majors_df[c("Major", "Date", "Venue") ])
+
+    return(last_eight_majors_df)
+
+  })
 
   #### Section 1: Home Page
 
@@ -1145,7 +1243,7 @@ shinyServer(function(input, output, session) {
       HTML('    
         <div class="row example-centered">
             <div class="col-md-12 example-title">
-                <h2>FedEx Rankings Explained</h2>
+                <h2>FedEx Cup Explained</h2>
             </div>
             <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2">
                 <ul class="timeline timeline-centered">
@@ -1155,7 +1253,7 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Rankings are calculated based on results from the most recent 8 major championships. Recency plays key role in determining OWGR rankings (i.e. more recent majors hold more weight on your ranking)."</p>
+                            <p>FedEx Cup points are awarded based on results for the current season.</p>
                         </div>
                     </li>
                     <li class="timeline-item">
@@ -1164,100 +1262,40 @@ shinyServer(function(input, output, session) {
                         </div>
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
-                            <p>Players will not recieve a negative ranking. The lowest ranking you can have is 0.</p>
-                        </div>
-                    </li>
-                    <li class="timeline-item period">
-                        <div class="timeline-info"></div>
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <h2 class="timeline-title">Calculation</h2>
-                        </div>
-                    </li>
-                    <li class="timeline-item">
-                        <div class="timeline-info">
-                            <span>Step 1)</span>
-                        </div>
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <p>Players are deducted 0.5 ranking points on entry</p>
-                        </div>
-                    </li>
-                    <li class="timeline-item">
-                        <div class="timeline-info">
-                            <span>Step 2)</span>
-                        </div>
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <p>Points are awarded to top 6 places as follows; <br>
-                            <table style="width:70%">
+                            <p>Points are awarded to the top 6 places as follows; <br>
+                            <div style = "float:right;">
+                            <table style="width:70%;">
                               <tr>
                                 <th>Place</th>
                                 <th>Points</th>
                               </tr>
                               <tr>
                                 <td>1st</td>
-                                <td>6.5</td>
+                                <td>650</td>
                               </tr>
                               <tr>
                                 <td>2nd</td>
-                                <td>5</td>
+                                <td>500</td>
                               </tr>
                               <tr>
                                 <td>3rd</td>
-                                <td>4</td>
+                                <td>400</td>
                               </tr>
                               <tr>
                                 <td>4th</td>
-                                <td>3</td>
+                                <td>300</td>
                               </tr>
                               <tr>
                                 <td>5th</td>
-                                <td>2</td>
+                                <td>200</td>
                               </tr>
                               <tr>
                                 <td>6th</td>
-                                <td>1</td>
+                                <td>100</td>
                               </tr>
                             </table>
+                            </div>
                             </p>
-                        </div>
-                    </li>
-                    <li class="timeline-item">
-                        <div class="timeline-info">
-                            <span>Step 3)</span>
-                        </div>
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <p>Previouly awarded points from past majors are weighted based on 
-                            recency. 
-                            Points awarded for the most recent major are worth full value while 
-                            points awarded for each preceding major reduce by 10% until fall out 
-                            of the rolling 8 major calculation.
-                            </p>
-                        </div>
-                    </li>
-                    <li class="timeline-item">
-                        <div class="timeline-info">
-                            <span>Step 4)</span>
-                        </div>
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <p>
-                            </p>
-                        </div>
-                    </li>
-                    <li class="timeline-item">
-                        <div class="timeline-info">
-                            <span>Step 5)</span>
-                        </div>
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <p>Finally, the players recency weighted stableford score over the 
-                              rolling 8 major window is summed and divided by 100, then added
-                              to the players OWGR score. This is intended to reward high-scoring 
-                              esults.
-                          </p>
                         </div>
                     </li>
                 </ul>
@@ -1345,7 +1383,7 @@ shinyServer(function(input, output, session) {
   output$owgrMainTable_temp <- renderReactable({
 
     if(input$isMobile){
-      var_width <- 150
+      var_width <- 120
       var_width_rank <- 60
     } 
       else{
@@ -1356,6 +1394,11 @@ shinyServer(function(input, output, session) {
     # Load data. 
     data <- owgr_tseries()
     players_data <- players_data()
+    owgr_players_results <- owgr_players_results()
+    last_eight_majors_df <- last_eight_majors_df()
+
+
+
 
     # Most recent handicaps from latest major attended.   
     data <- data %>% 
@@ -1426,7 +1469,112 @@ shinyServer(function(input, output, session) {
             paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
           }
         )
-      )
+      ),
+      details = function(index) {
+
+        owgr_players_results <- owgr_players_results[
+          owgr_players_results$Player == data$Player[index],
+        ]
+
+        owgr_players_results <- owgr_players_results[
+              c(
+                "Major",
+                "Date",
+                "Venue",
+                "Player",
+                "Handicap",
+                "Pos",
+                "Score",
+                "Weighted_Score",
+                "Pts",
+                "Weighted_Pts"
+              )
+            ]
+        
+        # Rename fields
+        owgr_players_results <- owgr_players_results %>% 
+          rename(
+            Position = Pos,
+            'Weighted Score' = Weighted_Score,
+            'Weighted Points' = Weighted_Pts,
+          )
+
+
+        htmltools::div(style = "padding: 16px",
+          reactable(
+            owgr_players_results, 
+            outlined = TRUE,
+            highlight = TRUE,
+            columns = list(
+              Major = colDef(
+                footer = "Total"
+              ),
+              Venue = colDef(
+                minWidth = var_width,
+                maxWidth = var_width,
+                width = var_width,
+                align = "left"
+              ),
+              Player = colDef(
+                minWidth = var_width,
+                maxWidth = var_width,
+                width = var_width,
+                align = "left"
+              ),
+              Score = colDef(
+                footer = JS("function(colInfo) {
+                    var total = 0
+                    colInfo.data.forEach(function(row) {
+                      total += row[colInfo.column.id]
+                    })
+                    return total.toFixed(2)
+                  }")
+              ),
+              'Weighted Score' = colDef(
+                minWidth = var_width,
+                maxWidth = var_width,
+                width = var_width,
+                align = "left",
+                footer = JS("function(colInfo) {
+                    var total = 0
+                    colInfo.data.forEach(function(row) {
+                      total += row[colInfo.column.id]
+                    })
+                    return total.toFixed(2)
+                  }"
+                )
+              ),
+              Pts = colDef(
+                minWidth = var_width,
+                maxWidth = var_width,
+                width = var_width,
+                align = "left",
+                footer = JS("function(colInfo) {
+                    var total = 0
+                    colInfo.data.forEach(function(row) {
+                      total += row[colInfo.column.id]
+                    })
+                    return total.toFixed(2)
+                  }")
+              ),
+              'Weighted Points' = colDef(
+                minWidth = var_width,
+                maxWidth = var_width,
+                width = var_width,
+                align = "left",
+                footer = JS("function(colInfo) {
+                    var total = 0
+                    colInfo.data.forEach(function(row) {
+                      total += row[colInfo.column.id]
+                    })
+                    return total.toFixed(2)
+                  }")
+              )
+            ),
+            defaultColDef = colDef(footerStyle = list(fontWeight = "bold"))
+          )
+        )
+      }
     )
 
 
@@ -1589,7 +1737,52 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # ShinyAlert modal if portait & on mobile. 
+  observeEvent(input$navBar, {
 
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        
+        Shiny.setInputValue('landscapeMode_owgr', null);
+        Shiny.setInputValue('landscapeMode_owgr', 'yes');
+        
+      } else{
+          
+          Shiny.setInputValue('landscapeMode_owgr', null);
+          Shiny.setInputValue('landscapeMode_owgr', 'no');
+
+      }
+    ")
+  })
+
+  observeEvent(input$landscapeMode_owgr, {
+
+    if(input$navBar %in% "OWGR" && is_mobile() && input$landscapeMode_owgr %in% "no"){
+
+      shinyalert(
+        inputId = "schedule_shinyalert",
+        title = "",
+        text = "Switch mobile orientation to view full table",
+        size = "s", 
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        type = "",
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        confirmButtonText = "OK",
+        confirmButtonCol = "#AEDEF4",
+        timer = 0,
+        imageUrl = "switch_to_landscape.png",
+        imageWidth = 150,
+        imageHeight = 150,
+        animation = TRUE
+      )
+
+    }
+
+  })
 
 
 
@@ -2856,6 +3049,7 @@ shinyServer(function(input, output, session) {
 
     # Load data.
     data <- major_results_data()
+    players_data <- players_data()
 
     # Create high-level major results data.
     major_results_data_temp1 <- data %>% 
@@ -2935,6 +3129,22 @@ shinyServer(function(input, output, session) {
           #style = sticky_style_one,
           #headerStyle = sticky_style_one,
           align = "center"
+        ),
+        Winner = colDef(
+          html = TRUE,
+          minWidth = 200,
+          maxWidth = 200,
+          width = 150,
+          #style = sticky_style_two,
+          #headerStyle = sticky_style_two,
+          #class = "sticky left-col-2",
+          #headerClass = "sticky left-col-2",
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
         ),
         Field = colDef(
           minWidth = var_width_rank,

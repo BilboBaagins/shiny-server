@@ -67,7 +67,7 @@ rm(con)
 
 
 
-# Append/Edit data to mongoDB
+# Append data to mongoDB
 #-----------------------------
 
 data <- read.csv("../../Downloads/Major Results - Major Results.csv")
@@ -94,3 +94,11 @@ con$remove(query = '{"Major":20}')
 
 # Read in data to check if it has been successfully deleted.
 data <- con$find(query = '{}')
+
+
+
+
+
+# Edit/update data in mongoDB
+#-----------------------------
+con$update(query = '{"Player":"Faylo"}', update = '{"$set":{"Player":"Feidhlim Dowling"}}', upsert = FALSE, multiple = TRUE) 
