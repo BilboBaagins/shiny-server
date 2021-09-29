@@ -1248,5 +1248,6 @@ i:hover {
 	background: #FFE07D !important;
   }
   
-
-  
+  .blockquote{
+	  font-size: 13px;
+  }
