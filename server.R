@@ -3094,6 +3094,9 @@ shinyServer(function(input, output, session) {
     # Convert to date field.
     major_results_data$Date <- lubridate::dmy(major_results_data$Date)
 
+    # Re-order. 
+    major_results_data <- major_results_data[order(-major_results_data$Major), ]
+
 
     if(input$isMobile){
       var_width <- 150
