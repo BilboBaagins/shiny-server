@@ -91,6 +91,9 @@ shinyUI(
       # tab panel 4 - OWGR Rankings
       tabPanel("OWGR",
         div(class="navbar-buffer"),
+        fluidRow(style="text-align:center;", 
+          div(uiOutput("owgr_owgrHeadlineBox"), style="vertical-align:top; display:inline-block; margin-bottom:50px;")
+        ),
         fluidRow(
           div(
             div(uiOutput("owgrTimeseries_conditional"), style = "text-align:center;"),
@@ -100,9 +103,26 @@ shinyUI(
           )
         )
       ),
+
+      # ----------------------------------
+      # tab panel 5 - Handicaps
+      tabPanel("Handicaps",
+        div(class="navbar-buffer"),
+        fluidRow(
+          style="text-align:center;", 
+          div(uiOutput("handicapsHeadlineBox"), style="vertical-align:top; display:inline-block; margin-bottom:50px;")
+        ),
+        fluidRow(
+          div(uiOutput("handicapsTimeseries_conditional"), style = "text-align:center;"),
+        ),
+        fluidRow(
+              div(uiOutput("handicapsTableTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("handicapsTable"), style="text-align:center; margin-bottom:50px;")
+        )
+      ),
       
       # ----------------------------------
-      # tab panel 5 - Players
+      # tab panel 6 - Players
       tabPanel("Players",
         includeHTML("about.html"),
         shinyjs::useShinyjs(),
@@ -118,7 +138,7 @@ shinyUI(
         )
       ),
       # ----------------------------------
-      # tab panel 6 - Stats
+      # tab panel 7 - Stats
       tabPanel("Stats",
         shinyjs::useShinyjs(),
         tags$head(
@@ -166,12 +186,13 @@ shinyUI(
           ),
           fluidRow(
             column(6, 
-              div(uiOutput("majorWinsTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("majorWins"), style="text-align:center; margin-bottom:50px;")
+              div(uiOutput("handicapsTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("handicaps"), style="text-align:center;"),
+              div(uiOutput("handicapsSeeMore"), style="text-align:center;margin-bottom:50px;")
             ),
             column(6, 
-              div(uiOutput("topThreeFinishesTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("topThreeFinishes"), style="text-align:center; margin-bottom:50px;")
+              div(uiOutput("majorWinsTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("majorWins"), style="text-align:center; margin-bottom:50px;")
             )
           ),          
           fluidRow(
@@ -180,8 +201,8 @@ shinyUI(
               div(uiOutput("avgScoring"), style="text-align:center; margin-bottom:50px;")
             ),
             column(6, 
-              div(uiOutput("majorAttendanceTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("majorAttendance"), style="text-align:center; margin-bottom:50px;")
+              div(uiOutput("topThreeFinishesTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("topThreeFinishes"), style="text-align:center; margin-bottom:50px;")
             )
           ),          
           fluidRow(
@@ -190,8 +211,8 @@ shinyUI(
               div(uiOutput("venueFrequency"), style="text-align:center; margin-bottom:50px;")
             ),
             column(6, 
-              div(uiOutput("handicapsTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("handicaps"), style="text-align:center; margin-bottom:50px;")
+              div(uiOutput("majorAttendanceTitle"), style="text-align:center; margin-bottom:10px;"),
+              div(uiOutput("majorAttendance"), style="text-align:center; margin-bottom:50px;")
             )
           ),          
           fluidRow(
@@ -203,7 +224,7 @@ shinyUI(
         )
       ),
       # ----------------------------------
-      # tab panel 7 - Results
+      # tab panel 8 - Results
       tabPanel("Results",
         div(class="navbar-buffer"),
         fluidRow(
@@ -212,17 +233,12 @@ shinyUI(
         fluidRow(
               div(uiOutput("majorResultsTableTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("majorResultsTable"), style="text-align:center; margin-bottom:50px;")
+        ),
+        fluidRow(
+          div(uiOutput("admin_uploadResults"), style="text-align:center; margin-top:50px;")
         )
       ),
-      # ----------------------------------
-      # tab panel 8 - Admin
-      tabPanel("Admin",
-      shinyjs::useShinyjs(),
-      div(class="navbar-buffer"),
-      fluidRow(
-        div(uiOutput("admin_uploadResults"), style="text-align:center; margin-top:50px;")
-      )
-    ),
+
       # ----------------------------------
       # tab panel 9 - SignOut
       tabPanel(

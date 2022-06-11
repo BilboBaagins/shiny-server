@@ -9,7 +9,7 @@ user <- "billy"
 pwd <- "JliMaQpXzTKYFCGe"
 
 # Construct your connection URL.
-url <- paste0("mongodb+srv://", user, ":", pwd, "@cluster0.4yzge.mongodb.net/")
+url <- paste0("mongodb+srv://", user, ":", pwd, "@cluster0.4yzge.mongodb.net/?retryWrites=true&w=majority")
 
 # For a successful connection, need to ensure IP is whitelisted.
 # Find it in: [project_name] > Network Access
@@ -24,13 +24,13 @@ url <- paste0("mongodb+srv://", user, ":", pwd, "@cluster0.4yzge.mongodb.net/")
 data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
 
 # Create connection to new DB & collection.
-major_results <- mongo(collection = "data", # Creating collection
-               db = "major_results", # Creating DataBase
+handicaps <- mongo(collection = "data", # Creating collection
+               db = "handicaps", # Creating DataBase
                url = url, 
                verbose = TRUE)
 
 # Insert data to mongoDB.
-major_results$insert(data)
+handicaps$insert(hcap)
 
 # Remove connection.
 rm(major_results)
@@ -70,8 +70,59 @@ rm(con)
 # Append data to mongoDB
 #-----------------------------
 
-data <- read.csv("../../Downloads/Major Results - Major Results.csv")
-data_new <- data[data$Major %in% c(20, 21, 22), ]
+# MANUALLY ENTER
+data <- data.frame(
+    Major = 24,
+    Date = "04/06/2022",
+    Player = c(
+        "Niall Devane", 
+        "Billy Archbold", 
+        "Gearoid Comber",
+        "Tiarnan O'Brien",
+        "Darragh Sheehan",
+        "Ian Cox",
+        "Will Molloy",
+        "Craig Hyland",
+        "David Benn",
+        "Oisin Tyrell"
+    ),
+    Handicap = c(
+        20,
+        15,
+        20,
+        22,
+        22,
+        32,
+        30,
+        23,
+        21,
+        19
+    ),
+    Score = c(
+        34,
+        32,
+        30,
+        29,
+        28,
+        27,
+        23,
+        20,
+        19,
+        12
+    ), 
+    Venue = "Rathsallagh GC"
+)
+
+# Append new data to MongoDB.
+con$insert(data)
+
+
+
+# FROM CSV
+#data <- read.csv("../../Downloads/Major Results - Major Results.csv")
+data <- read.csv("./Downloads/Major Results - Major Results.csv")
+#data_new <- data[data$Major %in% c(20, 21, 22), ]
+data_new <- data[data$Major %in% c(23), ]
 
 
 # Append new data to MongoDB.

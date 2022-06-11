@@ -15,6 +15,14 @@ source("mongoDB.R")
   #### Section 5: Stats
   #### Section 6: Results
   #### Section 7: Admin
+
+
+
+
+  # TO DO: (2022-06-11)
+  # 1. Add in FedEX Cup Champion Stat
+  # 2. CRUD admin functionality - upload results
+  # 3. Update the schedule
   
     
 
@@ -179,15 +187,67 @@ shinyServer(function(input, output, session) {
   # Not like we will have four majors planned months in advance, although that would be ideal.
   major_schedule_data <- reactive({
     
+    # data <- data.frame(
+    #   Date = c("2021-06-26", "2021-08-07", "2021-10-02"),
+    #   Course = c("Cradockstown Golf Club", "Tulfaris Golf Club", "Millicent Golf Club"), 
+    #   Location = c("Kildare", "Wicklow", "Kildare"), 
+    #   'Defending Champion' = c("Sean Whitson", "Darragh Sheehan", "---"), 
+    #   'Previous Major' = c("2020-07-25", "2018-05-06", "New Event Location"), 
+    #   'FedEx Cup Points' = c(650, 650, 650), 
+    #   lat = c(53.205828972592265, 53.12509004778715, 53.28098556258424), 
+    #   lon = c(-6.639070763009378, -6.559711595660492, -6.688538741988058),
+    #   check.names=FALSE
+    # )
+
     data <- data.frame(
-      Date = c("2021-06-26", "2021-08-07", "2021-10-02"),
-      Course = c("Cradockstown Golf Club", "Tulfaris Golf Club", "Millicent Golf Club"), 
-      Location = c("Kildare", "Wicklow", "Kildare"), 
-      'Defending Champion' = c("Sean Whitson", "Darragh Sheehan", "---"), 
-      'Previous Major' = c("2020-07-25", "2018-05-06", "New Event Location"), 
-      'FedEx Cup Points' = c(650, 650, 650), 
-      lat = c(53.205828972592265, 53.12509004778715, 53.28098556258424), 
-      lon = c(-6.639070763009378, -6.559711595660492, -6.688538741988058),
+      Date = c(
+        "2022-06-04", 
+        "2022-06-25",
+        "TBC",
+        "TBC"
+        ),
+      Course = c(
+        "Rathsallagh GC", 
+        "Newbridge GC",
+        "TBC",
+        "TBC"
+        ), 
+      Location = c(
+        "Co. Wicklow", 
+        "Co. Kildare",
+        "TBC",
+        "TBC"
+        ), 
+      'Defending Champion' = c(
+        "N/A - New Major Venue", 
+        "Luke Smith",
+        "N/A",
+        "N/A"
+        ), 
+      'Previous Major' = c(
+        "N/A - New Major Venue", 
+        "2016-07-09",
+        "N/A",
+        "N/A"
+        ), 
+      'FedEx Cup Points' = c(
+        650, 
+        650,
+        650,
+        650
+        ), 
+      lat = c(
+        53.02588032851557, 
+        53.20533609951484,
+        NA,
+        NA
+        ), 
+      lon = c(
+        -6.7391122773389105, 
+        -6.782317917430858,
+        NA,
+        NA
+        ),
       check.names=FALSE
     )
 
@@ -221,6 +281,35 @@ shinyServer(function(input, output, session) {
 
     # Make sure it's in the correct order. 
     data <- data[order(-data$Major, -data$Score),]
+
+    # Disconnect
+    rm(con)
+
+    #data <- read.csv("data/major_results.csv", stringsAsFactors=FALSE, check.names=FALSE)
+    
+    return(data)
+
+  })
+
+  handicaps_data <- reactive({
+    
+    # Unsuccessful connections may be result of IP address not being whitelisted. 
+    # To fix, navigate to [project_name] > Network Access
+
+    # Connect to your MongoDB instance.
+    con <- mongo(
+      collection = "handicaps",
+      db = "paptour_db",
+      url = url,
+      verbose = FALSE,
+      options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    # Make sure it's in the correct order. 
+    data <- data[order(data$Handicap, data$Handicap),]
 
     # Disconnect
     rm(con)
@@ -576,6 +665,29 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # Handicap Timeseries Data. 
+  handicap_timeseries <- reactive({
+
+    # Read data from mongoDB
+    #-----------------------------
+    # Connect to your MongoDB instance.
+    con <- mongo(
+        collection = "major_results",
+        db = "paptour_db",
+        url = url,
+        verbose = FALSE,
+        options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    data <- con$find(query = '{}')
+
+    data$Year <- lubridate::year(lubridate::dmy(data$Date))
+
+    return(data)
+
+  })
+
   #### Section 1: Home Page
 
   # Objective of this is to be the one-stop-shop for information.
@@ -621,66 +733,69 @@ shinyServer(function(input, output, session) {
         lon = colDef(show=FALSE)
       ),
       details = function(index) {
+
+        if (index %in% c(1, 2)) {
         
-        map_data <- data[index, ]
-
-        htmltools::div(
-          htmltools::div(style = "padding-top: 26px; padding-left: 10px; padding-right: 10px;",
-
-            tags$iframe(
-              seamless = "seamless",
-              src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
-              width = "100%",
-              height = 250,
-              style = "border:0px;"
-            )
-
-          ),
-          htmltools::div(style = "padding-top: 0px; padding-left: 10px; padding-right: 10px; padding-bottom: 100px;",
-
-            leaflet(options = leafletOptions(attributionControl = FALSE)) %>% 
-              setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
-              addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
-              addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
-              addProviderTiles("CartoDB.Positron", group = "Greyscale") %>% 
-              addMarkers(
-                lat = map_data$lat, 
-                lng = map_data$lon,
-                label = map_data$Course,
-                popup = paste0(
-                  "Course <b>", map_data$Course, "</b><br>", 
-                  "Location <b>", map_data$Location, "</b><br>",
-                  "Defending Champion <b>", map_data$'Defending Champion', "</b><br>",
-                  "Previous Major <b>", map_data$'Previous Major', "</b><br>",
-                  "FedEx Cup Points <b>", map_data$'FedEx Cup Points', "</b><br>"
-                )
-              ) %>% 
-              #addFullscreenControl() %>% 
-              addMeasure(
-                position = "bottomleft",
-                primaryLengthUnit = "feet",
-                secondaryLengthUnit = "meters",
-                activeColor = "#3D535D",
-                completedColor = "#7D4479"
-              ) %>% 
-              # Reset map view to original render.
-              addEasyButton(easyButton(
-                  icon="fas fa-location-arrow",
-                  title="Reset View",
-                  onClick=JS(paste0("
-                      function(btn, map) {
-                        map.setView([", map_data$lat,", ", map_data$lon,"], 16);
-                      }
-                      ")))) %>%
-              # Layers control
-              addLayersControl(
-                baseGroups = c("Satellite", "OpenStreetMap", "Greyscale"),
-                #overlayGroups = c("Quakes", "Outline"),
-                options = layersControlOptions(collapsed = TRUE)
+          map_data <- data[index, ]
+  ## 
+          htmltools::div(
+            htmltools::div(style = "padding-top: 26px; padding-left: 10px; padding-right: 10px;",
+  ## 
+              tags$iframe(
+                seamless = "seamless",
+                src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
+                width = "100%",
+                height = 250,
+                style = "border:0px;"
               )
-
+  ## 
+            ),
+            htmltools::div(style = "padding-top: 0px; padding-left: 10px; padding-right: 10px; padding-bottom: 100px;",
+  ## 
+              leaflet(options = leafletOptions(attributionControl = FALSE)) %>% 
+                setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
+                addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
+                addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
+                addProviderTiles("CartoDB.Positron", group = "Greyscale") %>% 
+                addMarkers(
+                  lat = map_data$lat, 
+                  lng = map_data$lon,
+                  label = map_data$Course,
+                  popup = paste0(
+                    "Course <b>", map_data$Course, "</b><br>", 
+                    "Location <b>", map_data$Location, "</b><br>",
+                    "Defending Champion <b>", map_data$'Defending Champion', "</b><br>",
+                    "Previous Major <b>", map_data$'Previous Major', "</b><br>",
+                    "FedEx Cup Points <b>", map_data$'FedEx Cup Points', "</b><br>"
+                  )
+                ) %>% 
+                #addFullscreenControl() %>% 
+                addMeasure(
+                  position = "bottomleft",
+                  primaryLengthUnit = "feet",
+                  secondaryLengthUnit = "meters",
+                  activeColor = "#3D535D",
+                  completedColor = "#7D4479"
+                ) %>% 
+                # Reset map view to original render.
+                addEasyButton(easyButton(
+                    icon="fas fa-location-arrow",
+                    title="Reset View",
+                    onClick=JS(paste0("
+                        function(btn, map) {
+                          map.setView([", map_data$lat,", ", map_data$lon,"], 16);
+                        }
+                        ")))) %>%
+                # Layers control
+                addLayersControl(
+                  baseGroups = c("Satellite", "OpenStreetMap", "Greyscale"),
+                  #overlayGroups = c("Quakes", "Outline"),
+                  options = layersControlOptions(collapsed = TRUE)
+                )
+  ## 
+            )
           )
-        )
+        }
       }
     )
 
@@ -775,10 +890,12 @@ shinyServer(function(input, output, session) {
 
     data <- fedex_data()
 
+    current_year <- lubridate::year(Sys.Date())
+
     div(
-      div(paste0("FedEx Cup Standings (", max(data$Year), ")"), HTML("<i id='fedExCupMainTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div(paste0("FedEx Cup Standings (", current_year, ")"), HTML("<i id='fedExCupMainTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
-      shinyBS::bsPopover("fedExCupMainTitleID", paste0("FedEx Cup Standings (", max(data$Year), ")"), "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
+      shinyBS::bsPopover("fedExCupMainTitleID", paste0("FedEx Cup Standings (", current_year, ")"), "FedEx Cup standings for the current season.", placement = "bottom", trigger = "hover"),
       class="align"
     )
 
@@ -797,6 +914,7 @@ shinyServer(function(input, output, session) {
       }
 
     # Load data. 
+    current_year <- lubridate::year(Sys.Date())
     # TO DO:
     # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
     data <- fedex_data()
@@ -886,6 +1004,16 @@ shinyServer(function(input, output, session) {
     # Subset data for current season/year. 
     data <- data[data$Year %in% max(data$Year), ]
 
+    # Catch for start of new season.  If current_year (from Sys.Date()) is greater than the max(data$Year),  
+    #  then don't display any of the previous years data BUT retain the players info (i.e. rows and cols.
+    if(current_year > max(data$Year)){
+      prev_year <- data$Year
+      data$Year <- current_year
+      data$Rank <- 1
+      data$'FedEx Points' <- 0
+      data$'Events Played' <- 0
+    }
+
     # Build the data table.
     reactable(
       data,
@@ -939,8 +1067,14 @@ shinyServer(function(input, output, session) {
         'FedEx Points' = colDef(
           align = "left", 
           cell = function(value){
-            width <- paste0(round(value / max(data$'FedEx Points') * 100), "%")
-            bar_chart(format(round(value, 0), nsmall = 0), width = width, fill = "#67c9c5", background = "#e1e1e1")
+
+            if(current_year == max(data$Year)){
+              
+              width <- paste0(round(value / max(data$'FedEx Points') * 100), "%")
+              bar_chart(format(round(value, 0), nsmall = 0), width = width, fill = "#67c9c5", background = "#e1e1e1")
+            
+            }
+
           } #57636b
         ),
         'Events Played' = colDef(
@@ -999,6 +1133,7 @@ shinyServer(function(input, output, session) {
       }
 
     # Load data. 
+    current_year <- lubridate::year(Sys.Date())
     # TO DO:
     # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
     data <- fedex_data()
@@ -1082,8 +1217,9 @@ shinyServer(function(input, output, session) {
 
     # Create high-level summary of FedEx Cup winners for each season. 
     data <- data[data$Rank %in% min(data$Rank), ]
+
     # Remove current year.
-    data <- data[data$Year != max(data$Year), ]
+    data <- data[data$Year != current_year, ]
 
     data <- data %>% rename('All Time Major Wins' = 'Major Wins')
 
@@ -1092,6 +1228,7 @@ shinyServer(function(input, output, session) {
     sticky_style_one <- list(position = "sticky", left = 0, background = "#fff", zIndex = 1)
     sticky_style_two <- list(position = "sticky", left = var_width_rank, background = "#fff", zIndex = 1, borderRight = "1px solid #eee")
 
+    data <- data[order(data$Year, decreasing=TRUE), ]
 
     # Build the data table.
     reactable(
@@ -1308,6 +1445,55 @@ shinyServer(function(input, output, session) {
 
 
   #### Section 4: OWGR
+
+  # owgrHeadlineBox
+  output$owgr_owgrHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- owgr_tseries()
+    players_data <- players_data()
+
+    # Most recent handicaps from latest major attended.   
+    data <- data %>% 
+        group_by(Player) %>%
+        top_n(1, abs(Ranking_Period)) %>% 
+        data.frame()
+
+    data <- data[order(data$OWGR, decreasing=TRUE),]
+
+    data <- data %>%
+      rename('Ranking Period' = Ranking_Period) %>% 
+      rename('No. Events Entered' = Events) %>% 
+      rename('Score' = Score_sum) %>% 
+      rename('Weighted Score' = Weighted_Score_sum) %>% 
+      rename('Pts' = Pts_sum) %>% 
+      rename('Weighted Pts' = Weighted_Pts_sum) 
+      
+      data <- data %>% 
+        mutate( Rank = dense_rank(-data$OWGR) )
+
+      data <- data %>% select(
+        Rank, 
+        Player, 
+        OWGR
+      )
+
+      data$OWGR <- round(data$OWGR, 2)
+
+      # Get the current top ranked golfer. 
+      top_ranked_golfer <- head(data, 1)
+      # Get first inital + surname to fit in info box. 
+      top_ranked_golfer <- paste0(
+        substr(top_ranked_golfer$Player, 1, 1),
+        ". ", 
+        sub(".* ", "", top_ranked_golfer$Player)
+      )
+
+      labelIcon <- tags$i(class = "fas fa-list-ol", style = "color:white;")
+
+      div(createInfoBox(top_ranked_golfer, labelIcon, "No. 1 Ranked Player"), class = "combo-box combo-dark")
+
+  })
 
   # OWGR Timeseries Chart.
   output$owgrTimeseries <- renderPlotly({
@@ -2355,24 +2541,24 @@ shinyServer(function(input, output, session) {
   })
 
 
-  # Top 3 Finishes -----------
-  # Top 3 Finishes - Title. 
-  output$topThreeFinishesTitle <- renderUI({
+  # Handicaps -----------
+  # Handicaps - Title. 
+  output$handicapsTitle <- renderUI({
 
     div(
-      div("Top 3 Finishes", HTML("<i id='topThreeFinishesTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div("Handicaps", HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
-      shinyBS::bsPopover("topThreeFinishesTitleID", "Top 3 Finishes", "Number of career top three finishes.", placement = "bottom", trigger = "hover"),
+      shinyBS::bsPopover("handicapsTitleID", "Handicaps", "Current player handicaps.", placement = "bottom", trigger = "hover"),
       class="align"
     )
 
-  })
-
-  # Number of Top 3 Finishes - temp.
-  output$topThreeFinishes_temp <- renderReactable({
+  }) 
+  
+  # Handicaps - temp. 
+  output$handicaps_temp <- renderReactable({
 
     # Load data.
-    data <- major_results_data()
+    data <- handicaps_data()
     players_data <- players_data()
 
     if(input$isMobile){
@@ -2384,38 +2570,20 @@ shinyServer(function(input, output, session) {
         var_width_rank <- 120
       }
 
+    data <- data[order(data$Handicap, decreasing=FALSE),]
 
-    # Wrangle major results data to extract top three finishes.
     data <- data %>% 
-      # Create temp table of top three scores (incl. ties) per major.
-      arrange(Major, -Score) %>%
-      group_by(Major) %>% 
-      top_n(3, Score) %>% 
-      mutate(Position = case_when(
-        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
-        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
-        Score == max(Score) ~ 1,
-        ( Score < max(Score) & Score > min(Score) ) ~ 2,
-        Score == min(Score) ~ 3)
-      ) %>%
-      select(-playoff_win) %>%
-      data.frame() %>%
-      # Create final count & rank of top three finishes. 
-      group_by(Player) %>%
-      summarise(Top3 = n()) %>%
-      arrange(-Top3, Player) %>%
-      mutate( Rank = dense_rank(-Top3) ) %>%
-      data.frame() %>% 
-      rename('No. Top 3 Finishes' = Top3) %>% 
-      select(Rank, Player, 'No. Top 3 Finishes')
+      mutate( Rank = dense_rank(data$Handicap) )
+
+    data <- data[c('Rank', 'Player', 'Handicap')]
 
     # Build the table.
     reactable(
       data,
       filterable = FALSE,
       searchable = FALSE,
-      defaultPageSize = 5, 
       minRows = 5,
+      defaultPageSize = 5,
       highlight = TRUE,
       theme = reactableTheme(
         style = list(fontSize = FONT_SIZE)
@@ -2444,8 +2612,8 @@ shinyServer(function(input, output, session) {
 
   })
 
-  # Number of Top 3 Finishes.
-  output$topThreeFinishes <- renderUI({
+  # Handicaps. 
+  output$handicaps <- renderUI({
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -2454,10 +2622,24 @@ shinyServer(function(input, output, session) {
        var_width <- "width:500px;"
      }
 
-    div(reactableOutput("topThreeFinishes_temp"), style = var_width, class="reactBox align")
+   div(reactableOutput("handicaps_temp"), style = var_width, class="reactBox align")
+
+  })
+  
+  # See More button for Handicaps tab.
+  output$handicapsSeeMore <- renderUI({
+
+    actionLink("handicapsSeeMore_input", "See More")
 
   })
 
+  # Jump user to Handicaps tab. 
+  observeEvent(input$handicapsSeeMore_input, {
+
+    updateTabsetPanel(session, "navBar", selected = "Handicaps")
+
+  })
+  
 
   # Major Wins -----------
   # Major Wins - Title. 
@@ -2565,6 +2747,111 @@ shinyServer(function(input, output, session) {
    div(reactableOutput("majorWins_temp"), style = var_width, class="reactBox align")
 
   })
+
+
+    # Top 3 Finishes -----------
+  # Top 3 Finishes - Title. 
+  output$topThreeFinishesTitle <- renderUI({
+
+    div(
+      div("Top 3 Finishes", HTML("<i id='topThreeFinishesTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      style = "margin-left:10px;",
+      shinyBS::bsPopover("topThreeFinishesTitleID", "Top 3 Finishes", "Number of career top three finishes.", placement = "bottom", trigger = "hover"),
+      class="align"
+    )
+
+  })
+
+  # Number of Top 3 Finishes - temp.
+  output$topThreeFinishes_temp <- renderReactable({
+
+    # Load data.
+    data <- major_results_data()
+    players_data <- players_data()
+
+    if(input$isMobile){
+      var_width <- 150
+      var_width_rank <- 60
+    } 
+      else{
+        var_width <- 200
+        var_width_rank <- 120
+      }
+
+
+    # Wrangle major results data to extract top three finishes.
+    data <- data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(3, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      select(-playoff_win) %>%
+      data.frame() %>%
+      # Create final count & rank of top three finishes. 
+      group_by(Player) %>%
+      summarise(Top3 = n()) %>%
+      arrange(-Top3, Player) %>%
+      mutate( Rank = dense_rank(-Top3) ) %>%
+      data.frame() %>% 
+      rename('No. Top 3 Finishes' = Top3) %>% 
+      select(Rank, Player, 'No. Top 3 Finishes')
+
+    # Build the table.
+    reactable(
+      data,
+      filterable = FALSE,
+      searchable = FALSE,
+      defaultPageSize = 5, 
+      minRows = 5,
+      highlight = TRUE,
+      theme = reactableTheme(
+        style = list(fontSize = FONT_SIZE)
+      ),
+      columns = list(
+        Rank = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          align = "left"
+        ),
+        Player = colDef(
+          html = TRUE,
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          cell = function(value) {
+            # Use player_data as lookup table to grab alias for photos. 
+            temp <- players_data %>% 
+              filter(Name == value)
+            paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
+          }
+        )
+      )
+    )
+
+  })
+
+  # Number of Top 3 Finishes.
+  output$topThreeFinishes <- renderUI({
+    
+   if(input$isMobile){
+     var_width <- "width:100%;"
+   } 
+     else{
+       var_width <- "width:500px;"
+     }
+
+    div(reactableOutput("topThreeFinishes_temp"), style = var_width, class="reactBox align")
+
+  })
+
 
 
   # Major Attendance -----------
@@ -2921,12 +3208,89 @@ shinyServer(function(input, output, session) {
 
   })
   
-  # Handicaps -----------
-  # Handicaps - Title. 
-  output$handicapsTitle <- renderUI({
+
+
+
+
+
+  #### Section 6: Handicaps
+  # handicapsHeadlineBox
+  output$handicapsHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- handicaps_data()
+
+    lowest_handicap_player <- data %>%
+      filter(Handicap == min(data$Handicap))
+    
+    labelIcon <- tags$i(class = "fas fa-list-ol", style = "color:white;")
+
+    div(createInfoBox2(lowest_handicap_player$Handicap, lowest_handicap_player$Player, labelIcon, "Lowest Handicap"), class = "combo-box combo-blue")
+
+  })
+
+  # Handicap Timeseries Chart.
+  output$handicapsTimeseries <- renderPlotly({
+
+    # Load Handicap Timeseries Data. 
+    data <- handicap_timeseries()
+
+    Event <- reorder(paste0("Major ", data$Major, " (", data$Year, ")"), data$Major)
+
+    # Plot
+    p <- data %>%
+        ggplot( aes(x=Event, y=Handicap, group=Player, color=Player)) +
+        geom_line() +
+        geom_point() +
+        #scale_color_viridis(discrete = TRUE) +
+        ggtitle("Handicap Timeseries") +
+        theme_ipsum() +
+        ylab("Handicaps") +
+        xlab("Major Timeline") +
+        theme(axis.text.x = element_text(angle = 20, vjust = 0.5, hjust=1))
+    # Turn it interactive with ggplotly
+    p <- ggplotly(p)
+
+
+    legend_hide <- data.frame()
+        for(i in 1:length(p$x$data)){
+            legend_hide <- rbind(legend_hide, tail(p$x$data[[i]]$y, 1))
+            colnames(legend_hide)[1] <- "Value"
+            p$x$data[[i]]$visible <- "legendonly"
+        }
+        
+        for(i in 1:length(p$x$data)){
+            if( tail(p$x$data[[i]]$y, 1) %in% top_n(legend_hide, -9)$Value ){
+                p$x$data[[i]]$visible <- NULL
+            }
+        }
+
+    return(p) 
+
+  })
+
+  # Handicap Timeseries Chart (conditional UI for mobile/desktop)
+  output$handicapsTimeseries_conditional <- renderUI({
+
+    if(input$isMobile){
+      div(NULL)
+    }else{
+        div(
+          shinycssloaders::withSpinner(
+            plotlyOutput("handicapsTimeseries", width="1300px", height="600px"),
+            type = 8, 
+            color = "#233845"
+          ), style = 'display: inline-block;'
+        )
+    }
+
+  })
+
+  # Handicap Table - Title. 
+  output$handicapsTableTitle <- renderUI({
 
     div(
-      div("Handicaps", HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
+      div("Current Handicaps", HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
       shinyBS::bsPopover("handicapsTitleID", "Handicaps", "Current player handicaps.", placement = "bottom", trigger = "hover"),
       class="align"
@@ -2934,43 +3298,52 @@ shinyServer(function(input, output, session) {
 
   }) 
   
-  # Handicaps - temp. 
-  output$handicaps_temp <- renderReactable({
+  # Handicap Table - temp. 
+  output$handicapsTable_temp <- renderReactable({
 
     # Load data.
-    data <- major_results_data()
+    data <- handicaps_data()
     players_data <- players_data()
 
     if(input$isMobile){
       var_width <- 150
-      var_width_rank <- 60
+      var_width_rank <- 70
     } 
       else{
         var_width <- 200
         var_width_rank <- 120
       }
 
-    # Most recent handicaps from latest major attended.   
-    data <- data %>% 
-        group_by(Player) %>%
-        top_n(1, abs(Major)) %>% 
-        data.frame()
-
-    data <- data[order(data$Handicap, decreasing=FALSE),]
+    # Sticky column CSS.
+    sticky_style_one <- list(position = "sticky", left = 0, background = "#fff", zIndex = 1)
+    sticky_style_two <- list(position = "sticky", left = var_width_rank, background = "#fff", zIndex = 1, borderRight = "1px solid #eee")
 
     data <- data %>% 
-      mutate( Rank = dense_rank(data$Handicap) )
+          mutate( Rank = dense_rank(data$Handicap) )
 
-    data <- data[c('Rank', 'Player', 'Handicap')]
+    data <- data[
+      c(
+        "Rank",
+        "Major",
+        "Player",
+        "Handicap",
+        "Date",
+        "Venue"
+        )]
 
-    # Build the table.
+    colnames(data[5]) <- "Date last played"
+    colnames(data[6]) <- "Venue last played"
+
+    # Build the table with nested table inside.
     reactable(
-      data,
-      filterable = FALSE,
+      data, 
+      filterable = TRUE,
       searchable = FALSE,
-      minRows = 5,
-      defaultPageSize = 5,
       highlight = TRUE,
+      pagination = FALSE,
+      #height = 500,
+      minRows = 10,
+      #defaultPageSize = 10,
       theme = reactableTheme(
         style = list(fontSize = FONT_SIZE)
       ),
@@ -2981,39 +3354,116 @@ shinyServer(function(input, output, session) {
           width = var_width_rank,
           align = "left"
         ),
+        Major = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width_rank,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          align = "center"
+        ),
+        Date = colDef(
+          name = "Date last played",
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width,
+          #style = sticky_style_one,
+          #headerStyle = sticky_style_one,
+          align = "center"
+        ),
         Player = colDef(
           html = TRUE,
           minWidth = var_width,
           maxWidth = var_width,
           width = var_width,
+          #style = sticky_style_two,
+          #headerStyle = sticky_style_two,
+          #class = "sticky left-col-2",
+          #headerClass = "sticky left-col-2",
           cell = function(value) {
             # Use player_data as lookup table to grab alias for photos. 
             temp <- players_data %>% 
               filter(Name == value)
             paste0('<a href="#" data-toggle="modal" data-target="#player-', temp$Alias, '">' , value, '</a>')
           }
+        ),
+        Handicap = colDef(
+          minWidth = var_width_rank,
+          maxWidth = var_width_rank,
+          width = var_width,
+          align = "center"
+        ),
+        Venue = colDef(
+          name = "Venue last played",
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width
         )
       )
     )
 
   })
 
-  # Handicaps. 
-  output$handicaps <- renderUI({
+  # Handicap Table. 
+  output$handicapsTable <- renderUI({
     
    if(input$isMobile){
-     var_width <- "width:100%;"
+     var_width <- "width:90%;"
    } 
      else{
-       var_width <- "width:500px;"
+       var_width <- "width:90%;"
      }
 
-   div(reactableOutput("handicaps_temp"), style = var_width, class="reactBox align")
+   div(reactableOutput("handicapsTable_temp"), style = var_width, class="reactBox align")
 
   })
-  
-  
 
+  # ShinyAlert modal if portait & on mobile. 
+  observeEvent(input$navBar, {
+
+    # Get JavaScript to check if the device is in Portrait or Landscape mode.
+    shinyjs::runjs("
+      if(window.innerHeight < window.innerWidth){
+        
+        Shiny.setInputValue('landscapeMode_handicaps', null);
+        Shiny.setInputValue('landscapeMode_handicaps', 'yes');
+        
+      } else{
+          
+          Shiny.setInputValue('landscapeMode_handicaps', null);
+          Shiny.setInputValue('landscapeMode_handicaps', 'no');
+
+      }
+    ")
+  })
+
+  observeEvent(input$landscapeMode_handicaps, {
+
+    if(input$navBar %in% "Handicaps" && is_mobile() && input$landscapeMode_handicaps %in% "no"){
+
+      shinyalert(
+        inputId = "schedule_shinyalert",
+        title = "",
+        text = "Switch mobile orientation to view full table",
+        size = "s", 
+        closeOnEsc = TRUE,
+        closeOnClickOutside = TRUE,
+        html = TRUE,
+        type = "",
+        showConfirmButton = TRUE,
+        showCancelButton = FALSE,
+        confirmButtonText = "OK",
+        confirmButtonCol = "#AEDEF4",
+        timer = 0,
+        imageUrl = "switch_to_landscape.png",
+        imageWidth = 150,
+        imageHeight = 150,
+        animation = TRUE
+      )
+
+    }
+
+  })
 
 
 
