@@ -1,11 +1,15 @@
 # PAP Tour. 
 
-Official website of the Putt & Pint Tour.  
+Website of the Putt & Pint Tour.  
 
 This is an R Shiny web applicaiton with create, read, update & delete (CRUD) functionality to track and manage stats from Major tournaments.   
-The application will utilise an SQLite database for persistent data storage.  
 
+Architecture Overview:
+UI is built using the RShiny framework, with additional HTML & CSS.
+Backend is MongoDB for persistent data storage & CRUD functionality.
+Authentication integrated using Google Firebase.
 The application is hosted on sevrver space rented from Digital Ocean (DO).  
+
 Server is linux ubuntu distribution 20.04 (latest).  
 R, RStudio Server, Shiny Server and Git are downloaded onto the linux server hosted at DO.  
 The application is developed locally on a MacBook Pro (2010) and updates are committed to this repository under the name 'shiny-server'.  
