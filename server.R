@@ -4175,7 +4175,7 @@ shinyServer(function(input, output, session) {
 
     # Then upload the data into MongoDB. 
     # Append new data to MongoDB.
-    #con$insert(data)
+    con$insert(data)
 
     # Disconnect from MongoDB.
     rm(con)
