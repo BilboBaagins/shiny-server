@@ -4173,6 +4173,8 @@ shinyServer(function(input, output, session) {
     # Re-order data in correct format for uplaod to MongoDB. 
     data <- data[c("Major", "Date", "Player", "Handicap", "Score", "Venue", "playoff_win")]
 
+    print(data)
+
     # Then upload the data into MongoDB. 
     # Append new data to MongoDB.
     con$insert(data)
