@@ -3485,15 +3485,108 @@ shinyServer(function(input, output, session) {
   # Results Table - Title. 
   output$majorResultsTableTitle <- renderUI({
 
-    div(
-      div("Major Results", HTML("<i id='majorResultsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
-      style = "margin-left:10px;",
-      shinyBS::bsPopover("majorResultsTitleID", "Major Results", "Historic major results. Expand table rows for more information on particular event.", placement = "bottom", trigger = "hover"),
-      class="align"
+    # Get logged in user info.
+    user <- f$get_signed_in()$response$displayName
+    email <- f$get_signed_in()$response$email
+
+    user_access_levels <- user_access_levels()
+
+    # print("user")
+    # print(user)
+    # print("email")
+    # print(email)
+
+    # onclick='Shiny.setInputValue(\"\", null); Shiny.setInputValue(\"\", 'clicked');
+
+    if( is.null(user) || user %in% user_access_levels$User || email %in% user_access_levels$User ){
+
+      div(
+      div(
+        div("Major Results", 
+          HTML("<i id='majorResultsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "majorResultsTitleID", 
+          "Major Results", 
+          "Historic major results. Expand table rows for more information on particular event.", 
+          placement = "bottom", 
+          trigger = "hover"
+          ),
+        class="align"
+      ),
+      div(
+        div(
+          HTML("<i id='admin_uploadResults_input' style='font-size:20px;' class='fas fa-plus'></i>"), 
+          class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "admin_uploadResults_input", 
+          "Upload Results", 
+          "Add recent major results.", 
+          placement = "bottom", 
+          trigger = "hover"
+          ),
+        class="align"
+      ),
+      div(
+        div(
+          HTML("<i id='admin_editResults_input' style='font-size:20px;' class='fas fa-edit'></i>"), class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "admin_editResults_input", 
+          "Edit Results", 
+          "Edit historic major results.", 
+          placement = "bottom", 
+          trigger = "hover"
+          ),
+        class="align"
+      )
     )
+    
+    } else{ # don't show admin functionality
+
+      div(
+        div("Major Results", 
+          HTML("<i id='majorResultsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "majorResultsTitleID", 
+          "Major Results", 
+          "Historic major results. Expand table rows for more information on particular event.", 
+          placement = "bottom", 
+          trigger = "hover"
+          ),
+        class="align"
+      )
+    
+    }
 
   }) 
-  
+
+  # Set up the button click event for uploading major results. 
+  shinyjs::onevent(
+    "click", 
+    "admin_uploadResults_input",
+    shinyjs::runjs("
+      Shiny.setInputValue('admin_uploadResults_input', null);
+      Shiny.setInputValue('admin_uploadResults_input', 'clicked');
+    ")
+  )
+
+  # Set up the button click event for editng major results. 
+  shinyjs::onevent(
+    "click", 
+    "admin_editResults_input",
+    shinyjs::runjs("
+      Shiny.setInputValue('admin_editResults_input', null);
+      Shiny.setInputValue('admin_editResults_input', 'clicked');
+    ")
+  )
+
   # Results Table - temp. 
   output$majorResultsTable_temp <- renderReactable({
 
@@ -3682,7 +3775,6 @@ shinyServer(function(input, output, session) {
 
   })
 
-
   observeEvent(input$landscapeMode_results, {
     if(input$navBar %in% "Results" && is_mobile() && input$landscapeMode_results %in% "no"){
 
@@ -3723,46 +3815,6 @@ shinyServer(function(input, output, session) {
 
   #### Section 9: Admin
 
-  # Upload Results.
-  output$admin_uploadResults <- renderUI({
-
-    # Get logged in user info.
-    user <- f$get_signed_in()$response$displayName
-    email <- f$get_signed_in()$response$email
-
-    user_access_levels <- user_access_levels()
-
-    # print("user")
-    # print(user)
-    # print("email")
-    # print(email)
-
-    if( is.null(user) || user %in% user_access_levels$User || email %in% user_access_levels$User ){
-
-      actionButton(
-        inputId = "admin_uploadResults_input",
-        label = "Upload Results"
-      )
-    
-    }else{
-      shinyjs::disabled(
-        actionButton(
-          inputId = "admin_uploadResults_input",
-          label = "Upload Results"
-        )
-      )
-    }
-  })
-
-  ## Sign-out button.
-  #output$signoutButton <- renderUI({
-  #  f$req_sign_in()
-  #  
-  #  div(style = "padding:8px;", 
-  #      tags$li(actionButton("signout", "Sign out", class = "btn-danger", style = "color:white;"), class = "dropdown"))
-  #  
-  #})
-
   # Sign user out.
   observeEvent(input$signout,{
     
@@ -3772,17 +3824,23 @@ shinyServer(function(input, output, session) {
 
   })
 
+
   # Listener - admin_uploadResults_input.
   observeEvent(input$admin_uploadResults_input, {
+
     # Launch the results upload modal.
     showModal(uploadResults())
+
   })
 
   # Upload Results Modal - Add.
   uploadResults <- function(failed = FALSE) {
 
-    # Get golfers. 
-    golfers <- players_data()
+    # Get golfers & current handicaps for writing major results data to DB. 
+    data <- handicaps_data()
+
+    # re-order data.
+    data <- data[order(-data$Major), ]
 
     # Create modal UI.
     modalDialog(
@@ -3824,12 +3882,14 @@ shinyServer(function(input, output, session) {
             "Golfer",
             width = 175,
             multiple = FALSE,
-            choices = golfers
+            choices = data$Player
         ), style = "margin-left: 15px;display: inline-block;vertical-align:top;"),
         div( 
           numericInput(
             inputId = "golferHandicap", 
             label = "Handicap", 
+            # Note: this value is updated when a golfer is selected from input list above.  
+            #   Observe Event action below. 
             value = NULL, 
             min = 0, 
             max = 36, 
@@ -3849,21 +3909,148 @@ shinyServer(function(input, output, session) {
         ), 
         style = "margin-left: 15px;display: inline-block;vertical-align:top;"
         ),
-        div(actionButton("addGolferResults", "Add", width = 79), style = "display: inline-block;margin-top:26px;margin-left:15px;"),
-        div(disabled(actionButton("deleteGolferResults", "Delete", width = 79)), style = "margin-left:15px;display:inline-block;vertical-align:middlemargin-top:26px;")
+        # Add a golfer + their score to mini table.
+        div(
+          actionButton(
+            "addGolferResults", 
+            "Add", 
+            width = 79
+          ), 
+          style = "display: inline-block;margin-top:26px;margin-left:15px;"
+        ),
+        # Remove golfer + their score from mini table (if entered incorrectly).
+        div(
+          disabled(
+            actionButton(
+              "deleteGolferResults", 
+              "Delete", 
+              width = 79
+            )
+          ), 
+          style = "margin-left:15px;display:inline-block;vertical-align:middlemargin-top:26px;"
+        )
       ),
-      div(DT::dataTableOutput('resultsTable'), style = "margin-left:30px;font-size:12px;min-height:50px;margin-right:50px;padding-bottom:40px;width:400px;"),
+      div(
+        DT::dataTableOutput('resultsTable'), 
+        style = "margin-left:30px;font-size:12px;min-height:50px;margin-right:50px;padding-bottom:40px;width:400px;"
+      ),
       br(),
       if (failed)
         # Show the error message
         div(addWarning$message, style = "color: red; margin-left:15px;"),
       
       footer = tagList(
-        actionButton("cancelUploadResults", "Cancel"),
-        actionButton("uploadResults", "Add Results")
+        actionButton("uploadResults", "Upload Results"),
+        actionButton("cancelUploadResults", "Cancel")
       ), size = 'm', easyClose = TRUE
     )
   }
+
+
+  # Listener - admin_editResults_input.
+  observeEvent(input$admin_editResults_input, {
+
+    # Launch the edit results modal.
+    showModal(editResults())
+
+  })
+
+  # Edit Results Modal - Add.
+  editResults <- function(failed = FALSE) {
+
+    # Create modal UI.
+    modalDialog(
+      div(
+        div(
+          DT::dataTableOutput('resultsTable_edit'), 
+          style = "margin-left:30px;font-size:12px;min-height:50px;margin-right:50px;padding-bottom:40px;width:400px;"
+        )
+      ),
+      br(),
+      if (failed)
+        # Show the error message
+        div(addWarning$message, style = "color: red; margin-left:15px;"),
+      
+      footer = tagList(
+        actionButton("saveEditedResults", "Save Edits"),
+        actionButton("cancelEditedResults", "Cancel")
+      ), size = 'l', easyClose = TRUE
+    )
+
+  }
+
+  # Edit Results Modal - Save. 
+  observeEvent(input$saveEditedResults, {
+
+    print("SQL ALTER query here...")
+
+  })
+
+  # Edit Results Modal - Cancel. 
+  observeEvent(input$cancelEditedResults, {
+
+    # Close the inspector modal.
+    removeModal()
+  
+  })
+
+  # Results Table - Edit.
+  output$resultsTable_edit <- DT::renderDataTable({
+    
+    #data <- rv$resultsTable_temp
+    data <- major_results_data()
+    data <- data %>% 
+      arrange(Major, -Score)
+
+    # Draw the datatable. 
+    DT::datatable(
+      data,
+      style = "bootstrap",
+      class = "row-border hover compact",
+      selection = list(mode = "single", target = "row", selected = NULL),
+      # Turn row names on for the row counter. 
+      rownames = TRUE,
+      filter = "top",
+      options = list(
+        #columnDefs = list(list(visible=FALSE, targets=c(1, 2, 6))),
+        stateSave = FALSE,
+        searchHighlight = TRUE,
+        server = FALSE, 
+        ordering = FALSE,
+        sDom  = '<"row"<"col-6"><"top">t<"bottom">',
+        #lengthMenu = list(c(15, 25, 50), c('15', '25', '50')),
+        pageLength = nrow(data),
+        autoWidth = TRUE),
+        # Creates a row index / counter. 
+        callback = JS("table.on('draw.dt', function(){
+                      var PageInfo = table.page.info();
+                      table.column(0, {page: 'current'}).nodes().each(function(cell,i){
+                      cell.innerHTML = i + 1 + PageInfo.start;
+                      });
+                      })
+                      ")
+      ) %>%
+      # Format the row counter to be greyed out. 
+      formatStyle(0, color = "#C1C1C1")
+  
+                   
+  })
+
+
+
+  # Update handicap numericInput with corresponding selected player.  
+  observeEvent(input$golferName, {
+
+    # Get golfers & current handicaps for writing major results data to DB. 
+    data <- handicaps_data()
+
+    updateNumericInput(
+      session, 
+      inputId = "golferHandicap",
+      value = as.numeric(data[data$Player %in% input$golferName, ]$Handicap)
+    )
+
+  })
 
   # Add golfer result to temp table.
   observeEvent(input$addGolferResults, {
@@ -3889,67 +4076,182 @@ shinyServer(function(input, output, session) {
 
     rv$resultsTable_temp <- data_temp
 
+    print("...Printing the players score table...")
+    print("print(rv$resultsTable_temp)")
+    print(rv$resultsTable_temp)
+
   })
-  
-  # Upload Results Modal - Save.
+
+  # Track row selection of mini golfer results table. 
+  selectedRowResultsTable <- reactiveVal(NULL)
+
+  # Determine if a row is de-sleected form the mini golfer results table. 
+  de_selectedRowResultsTable <- reactive({ !is.null(input$resultsTable_rows_selected) })
+
+  # Click event on mini golfer results table when row selected.
+  observeEvent(input$resultsTable_rows_selected, {
+
+    # Enable the "delete" button in modal for mini reults table. 
+    shinyjs::enable("deleteGolferResults")
+
+    # Get the selected row/golfer from the table. 
+    selected_golfer <- rv$resultsTable_temp$Golfer[input$resultsTable_rows_selected]
+    print(selected_golfer)
+
+    # Update the reactive value stores the row index selected form table.
+    selectedRowResultsTable(input$resultsTable_rows_selected)
+
+  })
+
+  # Click event when row is de-selected on mini golfer results table.
+  observeEvent(de_selectedRowResultsTable(), {
+
+    # If row is de-selected
+    if( !de_selectedRowResultsTable() ){
+      
+      print("Row has been successfully de-selected...")
+
+      # Disable the "delete" button again. 
+      shinyjs::disable("deleteGolferResults")
+
+    }
+    
+  })
+
+  # Listener for "delete" button in mini golfer results table.
+  observeEvent(input$deleteGolferResults, {
+
+    # Get data from the mini golfer results table, as it's being built
+    data <- rv$resultsTable_temp
+
+    print("Removing player from batch upload table...")
+    print(selectedRowResultsTable())
+
+    # I need to update the data that is being piped into the resultsTable UI. 
+    #  Need to remove the selected player from this dataset. 
+    # Get golfer
+    selected_row <- selectedRowResultsTable()
+    # Remove golfer from data
+    data <- data[-selected_row, ]
+    # Update the reactive Values being piped into the resultsTable UI.
+    rv$resultsTable_temp <- data
+
+  })
+
+  # Upload Results Modal - Save. 
   observeEvent(input$uploadResults, {
-    print("SQL INSERT query.")
+
+    # The purpose of this section is to add the Major results data (once happy with mini table) to MongoDB. 
+
+    # Firstly, get the mini golfer results table.
+    data <- rv$resultsTable_temp
+    # Rename col
+    colnames(data)[1] <- "Player"
+
+    # Then, get the last major number (i.e. Major 24)
+    # Connect to your MongoDB instance.
+    con <- mongo(
+      collection = "major_results",
+      db = "paptour_db",
+      url = url,
+      verbose = FALSE,
+      options = ssl_options()
+    )
+
+    # Read data form collection into data.frame. 
+    prev_major_data <- con$find(query = '{}')
+    prev_major <- max(prev_major_data$Major)
+
+    # Next, create data structured to upload straight into MongoDB.
+    data$Major <- prev_major + 1 # increment by one
+    data$Date <- input$majorDate
+    data$Venue <- input$courseName
+    # This needs to be worked on in future. 
+    data$playoff_win <- NA
+
+    # Re-order data in correct format for uplaod to MongoDB. 
+    data <- data[c("Major", "Date", "Player", "Handicap", "Score", "Venue", "playoff_win")]
+
+    # Then upload the data into MongoDB. 
+    # Append new data to MongoDB.
+    #con$insert(data)
+
+    # Disconnect from MongoDB.
+    rm(con)
+
   })
 
   # Upload Results Modal - Cancel. 
   observeEvent(input$cancelUploadResults, {
+
+    # Reset the data that has been entered into the mini golfer results table. 
+    #  I.e. delete all data from the reactive values data set.
+    rv$resultsTable_temp <- data.frame(
+      Golfer = character(), 
+      Handicap = numeric(),
+      Score = numeric(),
+      stringsAsFactors = FALSE
+    )
+
     # Close the inspector modal.
     removeModal()
+  
   })
 
+  # Set up the reactiveValues dataset to track the mini golfer results table. 
   rv <- reactiveValues( 
     resultsTable_temp = NULL
   )
 
   # Cretae reactive value to store and empty data.frame that will be updated with inspector inputs.
   results_df <- reactive({
-    df <- data.frame( Golfer = character(), 
-                      Handicap = numeric(),
-                      Score = numeric(),
-                      
-                      stringsAsFactors = FALSE )
+
+    df <- data.frame(
+      Golfer = character(), 
+      Handicap = numeric(),
+      Score = numeric(),
+      stringsAsFactors = FALSE
+    )
     return(df)
+
   })
   
- # Results Table.
+  # Results Table.
   output$resultsTable <- DT::renderDataTable({
     
     #data <- results_df()
     data <- rv$resultsTable_temp
       
     # Draw the datatable. 
-    DT::datatable(data,
-                  style = "bootstrap",
-                  class = "row-border hover compact",
-                  selection = list(mode = "single", target = "row", selected = NULL),
-                  # Turn row names on for the row counter. 
-                  rownames = TRUE,
-                  #filter = "top",
-                  options = list(#columnDefs = list(list(visible=FALSE, targets=c(1, 2, 6))),
-                                 stateSave = FALSE,
-                                 #searchHighlight = TRUE,
-                                 server = FALSE, 
-                                 ordering = FALSE,
-                                 sDom  = '<"row"<"col-6"><"top">t<"bottom">',
-                                 #lengthMenu = list(c(15, 25, 50), c('15', '25', '50')),
-                                 #pageLength = 15,
-                                 autoWidth = FALSE),
-                                 # Creates a row index / counter. 
-                                 callback = JS("table.on('draw.dt', function(){
-                                                var PageInfo = table.page.info();
-                                                table.column(0, {page: 'current'}).nodes().each(function(cell,i){
-                                                cell.innerHTML = i + 1 + PageInfo.start;
-                                                });
-                                                })
-                                                ")
-                  ) %>%
-                  # Format the row counter to be greyed out. 
-                  formatStyle(0, color = "#C1C1C1")
+    DT::datatable(
+      data,
+      style = "bootstrap",
+      class = "row-border hover compact",
+      selection = list(mode = "single", target = "row", selected = NULL),
+      # Turn row names on for the row counter. 
+      rownames = TRUE,
+      #filter = "top",
+      options = list(
+        #columnDefs = list(list(visible=FALSE, targets=c(1, 2, 6))),
+        stateSave = FALSE,
+        #searchHighlight = TRUE,
+        server = FALSE, 
+        ordering = FALSE,
+        sDom  = '<"row"<"col-6"><"top">t<"bottom">',
+        #lengthMenu = list(c(15, 25, 50), c('15', '25', '50')),
+        #pageLength = 15,
+        autoWidth = FALSE),
+        # Creates a row index / counter. 
+        callback = JS("table.on('draw.dt', function(){
+                      var PageInfo = table.page.info();
+                      table.column(0, {page: 'current'}).nodes().each(function(cell,i){
+                      cell.innerHTML = i + 1 + PageInfo.start;
+                      });
+                      })
+                      ")
+      ) %>%
+      # Format the row counter to be greyed out. 
+      formatStyle(0, color = "#C1C1C1")
   
                    
   })
@@ -3971,5 +4273,6 @@ shinyServer(function(input, output, session) {
 
   
 
-# End App.
+  # End App.
+
 })

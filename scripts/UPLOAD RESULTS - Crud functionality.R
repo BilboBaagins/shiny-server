@@ -1,4 +1,6 @@
-# mongoDB CRUD
+# UPLOAD RESULTS - Crud functionality
+
+# mongoDB CRUD
 # https://docs.mongodb.com/manual/crud/
 
 # Load library.
@@ -42,8 +44,8 @@ rm(major_results)
 #-----------------------------
 # Connect to your MongoDB instance.
 con <- mongo(
-    collection = "data",
-    db = "major_results",
+    collection = "major_results",
+    db = "paptour_db",
     url = url,
     verbose = FALSE,
     options = ssl_options()

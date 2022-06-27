@@ -31,6 +31,9 @@ library(viridis)
 #library(shinydisconnect) # customise the disconnect from server message.
 library(dplyr)
 
+# Negate %in% 
+'%!in%' <- Negate('%in%')
+
 # Create a custom value / info box
 createInfoBox <- function(value, iconName, text) {
   return(

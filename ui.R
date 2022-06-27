@@ -233,10 +233,10 @@ shinyUI(
         fluidRow(
               div(uiOutput("majorResultsTableTitle"), style="text-align:center; margin-bottom:10px;"),
               div(uiOutput("majorResultsTable"), style="text-align:center; margin-bottom:50px;")
-        ),
-        fluidRow(
-          div(uiOutput("admin_uploadResults"), style="text-align:center; margin-top:50px;")
-        )
+        )#,
+        #fluidRow(
+        #  div(uiOutput("admin_uploadResults"), style="text-align:center; margin-top:50px;")
+        #)
       ),
 
       # ----------------------------------
