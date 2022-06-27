@@ -4144,11 +4144,6 @@ shinyServer(function(input, output, session) {
 
     # The purpose of this section is to add the Major results data (once happy with mini table) to MongoDB. 
 
-    # Firstly, get the mini golfer results table.
-    data <- rv$resultsTable_temp
-    # Rename col
-    colnames(data)[1] <- "Player"
-
     # Then, get the last major number (i.e. Major 24)
     # Connect to your MongoDB instance.
     con <- mongo(
@@ -4158,6 +4153,11 @@ shinyServer(function(input, output, session) {
       verbose = FALSE,
       options = ssl_options()
     )
+
+    # Firstly, get the mini golfer results table.
+    data <- rv$resultsTable_temp
+    # Rename col
+    colnames(data)[1] <- "Player"
 
     # Read data form collection into data.frame. 
     prev_major_data <- con$find(query = '{}')
