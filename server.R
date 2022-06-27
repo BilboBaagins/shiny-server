@@ -3867,7 +3867,8 @@ shinyServer(function(input, output, session) {
           width = 350,
           # Might have a list of pre-prepared courses here with ability to add new one.
           choices = c("Select a course" = ""),# sort(pilot_contracts$Project_Name)),
-          multiple = FALSE
+          multiple = FALSE,
+          options = list(create = TRUE)
         ),
         style = "margin-left: 15px;"
       ),
