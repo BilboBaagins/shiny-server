@@ -72,22 +72,19 @@ rm(con)
 
 # MANUALLY ENTER
 data <- data.frame(
-    Major = 24,
-    Date = "04/06/2022",
+    Major = 25,
+    Date = "25/06/2022",
     Player = c(
-        "Niall Devane", 
         "Billy Archbold", 
         "Gearoid Comber",
         "Tiarnan O'Brien",
         "Darragh Sheehan",
-        "Ian Cox",
         "Will Molloy",
         "Craig Hyland",
-        "David Benn",
-        "Oisin Tyrell"
+        "Dave McGrath",
     ),
     Handicap = c(
-        20,
+        14,
         15,
         20,
         22,
@@ -139,7 +136,8 @@ rm(con)
 #-----------------------------
 
 # Delete
-con$remove(query = '{"Major":22}')
+con$remove(query = '{"Major":26}')
+
 con$remove(query = '{"Major":21}')
 con$remove(query = '{"Major":20}')
 
@@ -153,3 +151,61 @@ data <- con$find(query = '{}')
 # Edit/update data in mongoDB
 #-----------------------------
 con$update(query = '{"Player":"Faylo"}', update = '{"$set":{"Player":"Feidhlim Dowling"}}', upsert = FALSE, multiple = TRUE) 
+
+
+
+
+
+
+
+
+
+
+
+
+# Read data from mongoDB
+#-----------------------------
+# Connect to your MongoDB instance.
+con <- mongo(
+    collection = "major_results",
+    db = "paptour_db",
+    url = url,
+    verbose = FALSE,
+    options = ssl_options()
+)
+
+# Read data form collection into data.frame. 
+data <- con$find(query = '{}')
+
+
+con$remove(query = '{"Major":27}')
+con$remove(query = '{"Major":28}')
+con$remove(query = '{"Major":29}')
+con$remove(query = '{"Major":30}')
+con$remove(query = '{"Major":31}')
+con$remove(query = '{"Major":32}')
+con$remove(query = '{"Major":33}')
+con$remove(query = '{"Major":34}')
+con$remove(query = '{"Major":35}')
+con$remove(query = '{"Major":36}')
+con$remove(query = '{"Major":37}')
+con$remove(query = '{"Major":38}')
+con$remove(query = '{"Major":39}')
+con$remove(query = '{"Major":40}')
+con$remove(query = '{"Major":41}')
+con$remove(query = '{"Major":42}')
+con$remove(query = '{"Major":43}')
+con$remove(query = '{"Major":44}')
+con$remove(query = '{"Major":45}')
+con$remove(query = '{"Major":46}')
+con$remove(query = '{"Major":47}')
+con$remove(query = '{"Major":48}')
+con$remove(query = '{"Major":49}')
+con$remove(query = '{"Major":50}')
+con$remove(query = '{"Major":51}')
+con$remove(query = '{"Major":52}')
+con$remove(query = '{"Major":53}')
+con$remove(query = '{"Major":54}')
+con$remove(query = '{"Major":55}')
+con$remove(query = '{"Major":56}')
+con$remove(query = '{"Major":57}')

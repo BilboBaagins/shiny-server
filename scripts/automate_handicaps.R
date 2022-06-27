@@ -119,3 +119,11 @@ data <- con$find(query = '{}')
 
 # Disconnect
 rm(con)
+
+
+
+
+
+
+
+

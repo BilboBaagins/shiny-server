@@ -269,11 +269,11 @@ shinyServer(function(input, output, session) {
 
     # Connect to your MongoDB instance.
     con <- mongo(
-      collection = "data",
-      db = "major_results",
-      url = url,
-      verbose = FALSE,
-      options = ssl_options()
+        collection = "major_results",
+        db = "paptour_db",
+        url = url,
+        verbose = FALSE,
+        options = ssl_options()
     )
 
     # Read data form collection into data.frame. 
@@ -331,12 +331,12 @@ shinyServer(function(input, output, session) {
 
     # Connect to your MongoDB instance.
     con <- mongo(
-        collection = "data",
-        db = "major_results",
-        url = url,
-        verbose = FALSE,
-        options = ssl_options()
-    )
+      collection = "major_results",
+      db = "paptour_db",
+      url = url,
+      verbose = FALSE,
+      options = ssl_options()
+  )
 
     # Read data form collection into data.frame. 
     data <- con$find(query = '{}')
@@ -464,12 +464,12 @@ shinyServer(function(input, output, session) {
     
     # Connect to your MongoDB instance.
     con <- mongo(
-      collection = "data",
-      db = "major_results",
+      collection = "major_results",
+      db = "paptour_db",
       url = url,
       verbose = FALSE,
       options = ssl_options()
-    )
+  )
 
     # Read data form collection into data.frame. 
     data <- con$find(query = '{}')
@@ -570,12 +570,12 @@ shinyServer(function(input, output, session) {
     # Get the major results data for the expandable table.
     # Connect to your MongoDB instance.
     con <- mongo(
-        collection = "data",
-        db = "major_results",
-        url = url,
-        verbose = FALSE,
-        options = ssl_options()
-    )
+      collection = "major_results",
+      db = "paptour_db",
+      url = url,
+      verbose = FALSE,
+      options = ssl_options()
+  )
 
     # Read data form collection into data.frame. 
     data <- con$find(query = '{}')
@@ -638,8 +638,8 @@ shinyServer(function(input, output, session) {
     # Get the major results data for the expandable table.
     # Connect to your MongoDB instance.
     con <- mongo(
-        collection = "data",
-        db = "major_results",
+        collection = "major_results",
+        db = "paptour_db",
         url = url,
         verbose = FALSE,
         options = ssl_options()
@@ -4173,14 +4173,15 @@ shinyServer(function(input, output, session) {
     # Re-order data in correct format for uplaod to MongoDB. 
     data <- data[c("Major", "Date", "Player", "Handicap", "Score", "Venue", "playoff_win")]
 
-    print(data)
-
     # Then upload the data into MongoDB. 
     # Append new data to MongoDB.
     con$insert(data)
 
     # Disconnect from MongoDB.
     rm(con)
+
+    # Close the inspector modal.
+    removeModal()
 
   })
 
