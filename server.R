@@ -3855,7 +3855,7 @@ shinyServer(function(input, output, session) {
           "majorDate",
           "Date of Major",
           value = Sys.Date(), # Default to today's date.
-          format = "dd/mm/YYYY",
+          format = "dd/mm/yyyy",
           width = 350
         ),
         style = "margin-left: 15px;"
