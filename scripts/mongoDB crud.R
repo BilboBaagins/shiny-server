@@ -160,7 +160,7 @@ con$update(query = '{"Player":"Faylo"}', update = '{"$set":{"Player":"Feidhlim D
 
 
 
-
+con$remove(query = '{"Major":25}')
 
 
 # Read data from mongoDB
