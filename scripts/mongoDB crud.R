@@ -82,32 +82,29 @@ data <- data.frame(
         "Will Molloy",
         "Craig Hyland",
         "Dave McGrath",
+        "Phil Mahon"
     ),
     Handicap = c(
         14,
-        15,
         20,
         22,
         22,
-        32,
         30,
         23,
-        21,
-        19
+        32,
+        32
     ),
     Score = c(
-        34,
-        32,
+        27,
+        27,
         30,
-        29,
+        31,
+        27,
         28,
         27,
-        23,
-        20,
-        19,
-        12
+        19
     ), 
-    Venue = "Rathsallagh GC"
+    Venue = "Newbridge"
 )
 
 # Append new data to MongoDB.

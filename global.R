@@ -23,11 +23,12 @@ library(kableExtra)
 library(digest)
 library(htmltools)
 library(slickR)
-library(reactable)
+library(reactable) # 0.2.3 -> v0.3.0 for custom filtering
 library(firebase)
 library(ggplot2)
 library(hrbrthemes)
 library(viridis)
+
 #library(shinydisconnect) # customise the disconnect from server message.
 library(dplyr)
 

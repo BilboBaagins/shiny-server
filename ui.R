@@ -113,11 +113,13 @@ shinyUI(
           div(uiOutput("handicapsHeadlineBox"), style="vertical-align:top; display:inline-block; margin-bottom:50px;")
         ),
         fluidRow(
+          style="text-align:center;", 
           div(uiOutput("handicapsTimeseries_conditional"), style = "text-align:center;"),
         ),
         fluidRow(
-              div(uiOutput("handicapsTableTitle"), style="text-align:center; margin-bottom:10px;"),
-              div(uiOutput("handicapsTable"), style="text-align:center; margin-bottom:50px;")
+          style="text-align:center;", 
+          div(uiOutput("handicapsTableTitle"), style="text-align:center; margin-bottom:10px;"),
+          div(uiOutput("handicapsTable"), style="text-align:center; margin-bottom:50px;")
         )
       ),
       

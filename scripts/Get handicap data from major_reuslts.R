@@ -1,11 +1,13 @@
-# AUTOMATE HANDICAPS
+# Get handicap data from major results. 
+#  When new major results are entered, this should update the handicap data. 
+#  Basically, handicaps data is just the major results data with calculations done 
+#   for handicap movement depending on 1st, 2nd and last place finishes. 
 
 # mongoDB CRUD
 # https://docs.mongodb.com/manual/crud/
 
 # Load library.
 library(mongolite)
-library(dplyr)
 
 # Credentials.
 user <- "billy"
@@ -18,10 +20,6 @@ url <- paste0("mongodb+srv://", user, ":", pwd, "@cluster0.4yzge.mongodb.net/?re
 # Find it in: [project_name] > Network Access
 
 
-
-
-# Read data from mongoDB
-#-----------------------------
 # Connect to your MongoDB instance.
 con <- mongo(
     collection = "major_results",
@@ -34,93 +32,8 @@ con <- mongo(
 # Read data form collection into data.frame. 
 data <- con$find(query = '{}')
 
-# order data
-data <- data[order(-data$Major), ]
-
-# Disconnect
-rm(con)
-
-
-# Subset data to retrieve last major all payers entered
-hcap <- data %>%
-    group_by(Player) %>%
-    filter(Major == max(Major)) %>%
-    ungroup() %>% 
-    arrange(Handicap) %>%
-    data.frame()
-
-# Create a YEAR field
-hcap$Year <- lubridate::year(as.Date(hcap$Date, format = "%d/%m/%Y"))
-
-
-# Update the handicaps based off the most recent major
-hcap_updates <- hcap %>% 
-    filter(Major == max(Major)) %>% 
-    arrange(-Score)
-
-# Rules:
-#  1. 1st place gets deducted 2 shots
-#  2. 2nd place gets deducted 1 shot
-#  3. Last place gets 1 shot back
-
-first_place <- hcap_updates %>% 
-    # Get first place
-    filter(Score == max(Score)) %>% 
-    mutate(Handicap = Handicap - 2)
-
-second_place <- hcap_updates %>% 
-    # Remove first place
-    filter(Score != max(Score)) %>% 
-    # Get second place
-    filter(Score == max(Score)) %>% 
-    mutate(Handicap = Handicap - 1)
-
-last_place <- hcap_updates %>%
-    # Get last place
-    filter(Score == min(Score)) %>% 
-    mutate(Handicap = Handicap + 1)
-
-first_place
-second_place
-last_place
-
-hcap
-
-hcap[hcap$Player == first_place$Player, ]$Handicap <- first_place$Handicap
-hcap[hcap$Player == second_place$Player, ]$Handicap <- second_place$Handicap
-hcap[hcap$Player == last_place$Player, ]$Handicap <- last_place$Handicap
-
-hcap
-
-# Needed to update from last time
-hcap[hcap$Player %in% "Dan Courtney", ]$Handicap <- 19
-
-hcap
-
-
-
-# Connect to your MongoDB instance.
-    con <- mongo(
-      collection = "handicaps",
-      db = "paptour_db",
-      url = url,
-      verbose = FALSE,
-      options = ssl_options()
-    )
-
-# Read data form collection into data.frame. 
-data <- con$find(query = '{}')
-
-
-# Remove all records from the collection
-con$remove('{}')
-
-# Insert data to mongoDB.
-con$insert(hcap)
-
-
-# Remove connection.
-# rm(major_results)
+# Make sure it's in the correct order. 
+data <- data[order(-data$Major, -data$Score),]
 
 # Disconnect
 rm(con)
@@ -140,38 +53,6 @@ rm(con)
 
 
 
-
-
-
-
-
-
-# Connect to your MongoDB instance.
-con <- mongo(
-    collection = "handicaps",
-    db = "paptour_db",
-    url = url,
-    verbose = FALSE,
-    options = ssl_options()
-)
-# Read data form collection into data.frame. 
-hcaps <- con$find(query = '{}')
-
-con <- mongo(
-    collection = "major_results",
-    db = "paptour_db",
-    url = url,
-    verbose = FALSE,
-    options = ssl_options()
-)
-
-# Read data form collection into data.frame. 
-data <- con$find(query = '{}')
-# order data
-data <- data[order(-data$Major), ]
-
-# Disconnect
-rm(con)
 
 
 
@@ -255,7 +136,7 @@ for(player in unique(data$Player)){
     date <- data_temp[sum(head(rle(data_temp$Handicap)$lengths, length(rle(data_temp$Handicap)$lengths) -1)), ]$Date
 
         
-    #(nrow(data_temp[sum(head(rle(data_temp$Handicap)$lengths, length(rle(data_temp$Handicap)$lengths) -1)), ]), )
+    (nrow(data_temp[sum(head(rle(data_temp$Handicap)$lengths, length(rle(data_temp$Handicap)$lengths) -1)), ]), )
 
     # Throw it all into a df and rbind each row together for each player. 
     handicap_df_temp <- data.frame(
@@ -276,8 +157,9 @@ for(player in unique(data$Player)){
 print("print(handicap_df)")
 print(handicap_df)
 
-handicap_df <- handicap_df[order(handicap_df$Current.Handicap), ]
 
-handicap_df
+
+
+
 
 

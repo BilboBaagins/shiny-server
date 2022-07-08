@@ -291,6 +291,7 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # Handicap data. 
   handicaps_data <- reactive({
     
     # Unsuccessful connections may be result of IP address not being whitelisted. 
@@ -319,6 +320,24 @@ shinyServer(function(input, output, session) {
     return(data)
 
   })
+
+  # Load handicaps data (not in reactive), for removal from table (for screengrabs)
+  con <- mongo(
+    collection = "handicaps",
+    db = "paptour_db",
+    url = url,
+    verbose = FALSE,
+    options = ssl_options()
+  )
+
+  # Read data form collection into data.frame. 
+  handicap_data_2 <- con$find(query = '{}')
+
+  # Make sure it's in the correct order. 
+  handicap_data_2 <- handicap_data_2[order(handicap_data_2$Handicap, handicap_data_2$Handicap),]
+
+  # Disconnect
+  rm(con)
 
   # FedEx Cup Standings / OWGR (Official World Golf Ranking).
   fedex_data <- reactive({
@@ -3290,19 +3309,85 @@ shinyServer(function(input, output, session) {
   output$handicapsTableTitle <- renderUI({
 
     div(
-      div("Current Handicaps", HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
-      style = "margin-left:10px;",
-      shinyBS::bsPopover("handicapsTitleID", "Handicaps", "Current player handicaps.", placement = "bottom", trigger = "hover"),
-      class="align"
+      div(
+        div(
+          "Current Handicaps", 
+          HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), 
+          class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "handicapsTitleID", 
+          "Handicaps", 
+          "Current player handicaps.", 
+          placement = "bottom", 
+          trigger = "hover"
+        ),
+        class="align"
+      ),
+      div(
+        div(
+          HTML("<i id='remove_golfers' style='font-size:20px;' class='fas fa-minus'></i>"), 
+          class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "remove_golfers", 
+          "Remove Golfers", 
+          "Remove selected golfers form handicaps table.", 
+          placement = "bottom", 
+          trigger = "hover"
+        ),
+        class="align"
+      ),
+      div(
+        div(
+          HTML("<i id='reset_golfers' style='font-size:20px;' class='fas fa-redo'></i>"), 
+          class="table-title"
+        ),
+        style = "margin-left:10px;",
+        shinyBS::bsPopover(
+          "reset_golfers", 
+          "Reset Golfers", 
+          "Reset removed golfers to original handicaps table.", 
+          placement = "bottom", 
+          trigger = "hover"
+        ),
+        class="align"
+      )
     )
 
   }) 
+
+  # Set up the button click event for removing players from handicap table (for easy screen capture). 
+  shinyjs::onevent(
+    "click", 
+    "remove_golfers",
+    shinyjs::runjs("
+      Shiny.setInputValue('remove_golfers', null);
+      Shiny.setInputValue('remove_golfers', 'clicked');
+    ")
+  )
+
+  # Set up the button click event for resetting handicaps table. 
+  shinyjs::onevent(
+    "click", 
+    "reset_golfers",
+    shinyjs::runjs("
+      Shiny.setInputValue('reset_golfers', null);
+      Shiny.setInputValue('reset_golfers', 'clicked');
+    ")
+  )
   
+  # Reactive value to store data in handicaps table (for removing functionality)
+  rv_handicap_data <- reactiveValues(data = handicap_data_2)
+
   # Handicap Table - temp. 
   output$handicapsTable_temp <- renderReactable({
 
     # Load data.
-    data <- handicaps_data()
+    #data <- handicaps_data()
+    data <- rv_handicap_data$data
     players_data <- players_data()
 
     if(input$isMobile){
@@ -3328,15 +3413,23 @@ shinyServer(function(input, output, session) {
         "Player",
         "Handicap",
         "Date",
+        "Year",
         "Venue"
         )]
 
     colnames(data[5]) <- "Date last played"
-    colnames(data[6]) <- "Venue last played"
+    colnames(data[6]) <- "Year last played"
+    colnames(data[7]) <- "Venue last played"
+
+    # Assign the data to rv_handicap_data reactive values. 
+    rv_handicap_data$data <- data
 
     # Build the table with nested table inside.
     reactable(
-      data, 
+      rv_handicap_data$data, 
+      style = "display:inline-block;",
+      selection = "multiple", 
+      onClick = "select",
       filterable = TRUE,
       searchable = FALSE,
       highlight = TRUE,
@@ -3398,11 +3491,45 @@ shinyServer(function(input, output, session) {
           minWidth = var_width,
           maxWidth = var_width,
           width = var_width
+        ),
+        Year = colDef(
+          name = "Year last played",
+          minWidth = var_width,
+          maxWidth = var_width,
+          width = var_width
         )
       )
     )
 
   })
+
+  # Remove golfers from table for easy screen grab of player handicaps.
+  observeEvent(input$remove_golfers, {
+
+    rows <- getReactableState("handicapsTable_temp", "selected")
+
+    print("print(rows)")
+    print(rows)
+
+    req(rows)
+
+    print("print(rv_handicap_data$data) before")
+    print(rv_handicap_data$data)
+
+    rv_handicap_data$data <- rv_handicap_data$data[-rows, ]
+
+    print("print(rv_handicap_data$data)")
+    print(rv_handicap_data$data)
+
+  })
+
+  # Listener - reset handicap table (after removing players for screenshot)
+  observeEvent(input$reset_golfers ,{
+
+    rv_handicap_data$data <- handicap_data_2
+
+  })
+  
 
   # Handicap Table. 
   output$handicapsTable <- renderUI({
@@ -3411,10 +3538,10 @@ shinyServer(function(input, output, session) {
      var_width <- "width:90%;"
    } 
      else{
-       var_width <- "width:90%;"
+       var_width <- "width:90%; display:inline-block;"
      }
 
-   div(reactableOutput("handicapsTable_temp"), style = var_width, class="reactBox align")
+   div(reactableOutput("handicapsTable_temp", width = "auto", inline=TRUE), style = var_width, class="reactBox align")
 
   })
 
@@ -3464,6 +3591,7 @@ shinyServer(function(input, output, session) {
     }
 
   })
+
 
 
 
