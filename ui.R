@@ -72,6 +72,9 @@ shinyUI(
         #  div(uiOutput("rankingPlayer")),
         #  div(style='height:60px;')
         #),
+        fluidRow(style="text-align:center;", 
+          div(uiOutput("fedEx_fedExHeadlineBox"), style="vertical-align:top; display:inline-block; margin-bottom:50px;")
+        ),
         fluidRow(
           div(uiOutput("fedExCupMainTableTitle"), style="text-align:center; margin-bottom:10px;"),
           div(uiOutput("fedExCupMainTable"), style="text-align:center; margin-bottom:50px;"),
@@ -231,6 +234,9 @@ shinyUI(
         div(class="navbar-buffer"),
         fluidRow(
           div(uiOutput("rotateLandscape"))
+        ),
+        fluidRow(style="text-align:center;", 
+          div(uiOutput("results_majorWinsHeadlineBox"), style="vertical-align:top; display:inline-block; margin-bottom:50px;")
         ),
         fluidRow(
               div(uiOutput("majorResultsTableTitle"), style="text-align:center; margin-bottom:10px;"),

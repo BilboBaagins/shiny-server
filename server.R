@@ -203,31 +203,31 @@ shinyServer(function(input, output, session) {
       Date = c(
         "2022-06-04", 
         "2022-06-25",
-        "TBC",
+        "2022-07-09",
         "TBC"
         ),
       Course = c(
         "Rathsallagh GC", 
         "Newbridge GC",
-        "TBC",
+        "Corballis Links",
         "TBC"
         ), 
       Location = c(
         "Co. Wicklow", 
         "Co. Kildare",
-        "TBC",
+        "Co. Dublin",
         "TBC"
         ), 
       'Defending Champion' = c(
         "N/A - New Major Venue", 
         "Luke Smith",
-        "N/A",
+        "Billy Archbold",
         "N/A"
         ), 
       'Previous Major' = c(
         "N/A - New Major Venue", 
         "2016-07-09",
-        "N/A",
+        "2015-06-28",
         "N/A"
         ), 
       'FedEx Cup Points' = c(
@@ -239,13 +239,13 @@ shinyServer(function(input, output, session) {
       lat = c(
         53.02588032851557, 
         53.20533609951484,
-        NA,
+        53.4703853985663,
         NA
         ), 
       lon = c(
         -6.7391122773389105, 
         -6.782317917430858,
-        NA,
+        -6.12539636091,
         NA
         ),
       check.names=FALSE
@@ -753,13 +753,13 @@ shinyServer(function(input, output, session) {
       ),
       details = function(index) {
 
-        if (index %in% c(1, 2)) {
+        if (index %in% c(1, 2, 3)) {
         
           map_data <- data[index, ]
-  ## 
+   
           htmltools::div(
             htmltools::div(style = "padding-top: 26px; padding-left: 10px; padding-right: 10px;",
-  ## 
+   
               tags$iframe(
                 seamless = "seamless",
                 src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
@@ -767,10 +767,10 @@ shinyServer(function(input, output, session) {
                 height = 250,
                 style = "border:0px;"
               )
-  ## 
+   
             ),
             htmltools::div(style = "padding-top: 0px; padding-left: 10px; padding-right: 10px; padding-bottom: 100px;",
-  ## 
+   
               leaflet(options = leafletOptions(attributionControl = FALSE)) %>% 
                 setView(lat = map_data$lat, lng = map_data$lon, zoom = 16) %>%
                 addProviderTiles("OpenStreetMap.Mapnik", group = "OpenStreetMap") %>% 
@@ -811,7 +811,7 @@ shinyServer(function(input, output, session) {
                   #overlayGroups = c("Quakes", "Outline"),
                   options = layersControlOptions(collapsed = TRUE)
                 )
-  ## 
+  
             )
           )
         }
@@ -886,7 +886,136 @@ shinyServer(function(input, output, session) {
 
 
 
+
+
+
+
+
+
+
+
+
+
   #### Section 3: FedEx Cup Standings
+
+  # fedExHeadlineBox
+  output$fedEx_fedExHeadlineBox <- renderUI({
+
+    # Load data. 
+    # TO DO:
+    # Currently being read from CSV> - change to RSQLite DB table on Shiny Server.
+    data <- fedex_data()
+    data$Score <- dplyr::coalesce(data$Score, 0)
+    data$Events <- dplyr::coalesce(data$Events, 0)
+    players_data <- players_data()
+
+
+    # Load major_results_data.
+    major_results_data <- major_results_data()
+
+    # Create high-level major results data.
+    major_results_data_temp1 <- major_results_data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      # Remove any playoff non-winners.
+      filter(Position == min(Position)) %>% 
+      select(-playoff_win, -Position) %>%
+      data.frame()
+
+    # Supplementary high-level major stats,
+    major_results_data_temp2 <- major_results_data %>%       
+      group_by(Major) %>% 
+      mutate(Field = n()) %>% 
+      mutate(Mean_Score = round(mean(Score), 1)) %>% 
+      mutate(Median_Score = round(median(Score), 1)) %>% 
+      mutate(Mean_Handicap = round(mean(Handicap), 1)) %>% 
+      mutate(Median_Handicap = round(median(Handicap), 1)) %>% 
+      select(Major, Field, Mean_Score, Median_Score, Mean_Handicap, Median_Handicap) %>%
+      unique() %>% 
+      data.frame() 
+
+    # Join into one view and rename some columns. 
+    major_results_data <- left_join(major_results_data_temp1, major_results_data_temp2) %>% 
+      rename(Winner = Player) %>%
+      rename('Mean Handicap' = Mean_Handicap) %>%
+      rename("Median Handicap" = Median_Handicap) %>%
+      rename("Mean Score" = Mean_Score) %>%
+      rename("Median Score" = Median_Score) %>%
+      #select(Major, Date, Venue, Field, Winner, Score, 'Mean Score', 'Median Score', Handicap, 'Mean Handicap', 'Median Handicap')
+      select(Major, Date, Venue, Field, Winner, Score, Handicap)
+
+    # Convert to date field.
+    major_results_data$Date <- lubridate::dmy(major_results_data$Date)
+
+    major_winners <- table(major_results_data$Winner) %>% data.frame()
+    major_winners <- major_winners[order(-major_winners$Freq), ]
+
+    data <- dplyr::left_join(data, major_winners, by = c("Player" = "Var1"))
+    data <- data %>% 
+      rename('Major Wins' = Freq, "FedEx Points" = FedEx_Points)
+
+
+    data <- data %>%
+      select(
+        "Year", 
+        "Pos", 
+        "Player", 
+        "FedEx Points", 
+        "Events", 
+        "Major Wins"
+      ) %>% 
+        rename(
+          "Rank" = "Pos",
+          "Events Played" = "Events"
+          )
+
+    # Replace NAs with 0 in Major wins column. 
+    data$'Major Wins' <- dplyr::coalesce(data$'Major Wins', 0)
+
+    data <- data %>% select(-'Major Wins') 
+
+    # Subset data for current season/year. 
+    data <- data[data$Year %in% max(data$Year), ]
+
+    # Subset data for top ranked golfer(s).
+    data <- data[data$'FedEx Points' == max(data$'FedEx Points'), ]
+
+    if(nrow(data) > 1){
+      text <- " (Multiple  Golfers)"
+
+      labelIcon <- tags$i(class = "fab fa-fedex", style = "color:white;")
+
+      div(createInfoBox2("+ ", text, labelIcon, "FedEx Cup Leader"), class = "combo-box combo-grey")
+
+    } else{
+
+      # Get first inital + surname to fit in info box. 
+      text <- paste0(
+        " (",
+        substr(data$Player, 1, 1),
+        ". ", 
+        sub(".* ", "", data$Player),
+        ")"
+      )
+
+      labelIcon <- tags$i(class = "fab fa-fedex", style = "color:white;")
+
+      div(createInfoBox(text, labelIcon, "FedEx Cup Leader"), class = "combo-box combo-grey")
+
+    }
+
+
+
+  })
 
   # Points Leader
   output$rankingPlayer <- renderUI({
@@ -1460,6 +1589,18 @@ shinyServer(function(input, output, session) {
     ))
 
   })
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3609,6 +3750,61 @@ shinyServer(function(input, output, session) {
 
 
   #### Section 7: Results
+
+  # majorWinsHeadlineBox
+  output$results_majorWinsHeadlineBox <- renderUI({
+
+    # Load data. 
+    data <- major_results_data()
+    players_data <- players_data()
+
+    data <- data %>% 
+      # Create temp table of top three scores (incl. ties) per major.
+      arrange(Major, -Score) %>%
+      group_by(Major) %>% 
+      top_n(1, Score) %>% 
+      mutate(Position = case_when(
+        ( Score == max(Score) & playoff_win == 1 ) ~ 1,
+        ( Score == max(Score) & playoff_win == 2 ) ~ 2,
+        Score == max(Score) ~ 1,
+        ( Score < max(Score) & Score > min(Score) ) ~ 2,
+        Score == min(Score) ~ 3)
+      ) %>%
+      select(-playoff_win) %>%
+      data.frame() %>%
+      # Create final count & rank of top three finishes. 
+      group_by(Player) %>%
+      summarise(Top1 = n()) %>%
+      arrange(-Top1, Player) %>%
+      mutate( Rank = dense_rank(-Top1) ) %>%
+      data.frame() %>% 
+      rename('Wins' = Top1) %>% 
+      select(Rank, Player, 'Wins')
+      labelIcon <- tags$i(class = "fas fa-list-ol", style = "color:white;")
+
+      data <- data[data$Wins %in% max(data$Wins), ]
+
+      if(nrow(data) > 1){
+        text <- " (Multiple Golfers)"
+      } else{
+
+        # Get first inital + surname to fit in info box. 
+        text <- paste0(
+          " (",
+          substr(data$Player, 1, 1),
+          ". ", 
+          sub(".* ", "", data$Player),
+          ")"
+        )
+
+      }
+
+
+      labelIcon <- tags$i(class = "fas fa-trophy", style = "color:white;")
+
+      div(createInfoBox2(max(data$Wins), text, labelIcon, "Most Major Wins"), class = "combo-box combo-teal")
+
+  })
 
   # Results Table - Title. 
   output$majorResultsTableTitle <- renderUI({
