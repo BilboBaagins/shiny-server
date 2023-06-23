@@ -1,5 +1,4 @@
 source("global.R")
-source("appParts.R")
 
 shinyUI(
   div(
@@ -13,8 +12,8 @@ shinyUI(
       useFirebase(), # import dependencies
       useFirebaseUI() # import UI  
     ),
-  reqSignin(
-    tagList(
+  #reqSignin(
+    htmltools::tagList(
     tags$head(
       tags$style(
         HTML(".navbar-nav {
@@ -27,13 +26,15 @@ shinyUI(
         )
       )
     ),
+
     navbarPage(
       id = "navBar",
       title = "paptour.com",
       selected = "Home",
       position = c("fixed-top"),
       theme = "style/style.css",
-      footer = includeHTML("footer.html"),
+      #footer = includeHTML("footer.html"),
+      footer = uiOutput("footer"),
       fluid = TRUE, 
       collapsible = TRUE,
 
@@ -42,7 +43,7 @@ shinyUI(
       tabPanel("Home",
         shinyjs::useShinyjs(),
         useShinyalert(),  # Set up shinyalert
-        includeHTML("home.html"),
+        #includeHTML("home.html"),
         tags$style(type="text/css", "padding-top: 70px;"),
         tags$script(src = "plugins/scripts.js"),
         tags$script(src = "https://kit.fontawesome.com/8f64345e9e.js"),
@@ -50,7 +51,8 @@ shinyUI(
           tags$link(rel = "icon", 
                     type = "image/png", 
                     href = "favicon.png")
-        )
+        ),
+        div(uiOutput("home"))
       ),
       
       # ----------------------------------
@@ -129,7 +131,7 @@ shinyUI(
       # ----------------------------------
       # tab panel 6 - Players
       tabPanel("Players",
-        includeHTML("about.html"),
+        #includeHTML("about.html"),
         shinyjs::useShinyjs(),
         tags$head(
             tags$link(rel = "stylesheet", 
@@ -140,7 +142,8 @@ shinyUI(
         tags$style(type="text/css",
                     ".shiny-output-error { visibility: hidden; }",
                     ".shiny-output-error:before { visibility: hidden; }"
-        )
+        ),
+        div(uiOutput("about"))
       ),
       # ----------------------------------
       # tab panel 7 - Stats
@@ -259,5 +262,5 @@ shinyUI(
       )
     )
   )
-)
+#)
 )

@@ -28,7 +28,6 @@ source("mongoDB.R")
 
 shinyServer(function(input, output, session) {
 
-
  # print list of input events
   output$text <- renderPrint({reactiveValuesToList(input)})
 
@@ -97,7 +96,7 @@ shinyServer(function(input, output, session) {
 
   observeEvent( f$get_signed_in(), {
     
-    # Get logged in user info.
+    # Get logged in user info. 
     user <- f$get_signed_in()$response$displayName
 
     print(user)
@@ -201,33 +200,33 @@ shinyServer(function(input, output, session) {
 
     data <- data.frame(
       Date = c(
-        "2022-06-04", 
-        "2022-06-25",
-        "2022-07-09",
+        "2023-06-24", 
+        "TBC",
+        "TBC",
         "TBC"
         ),
       Course = c(
-        "Rathsallagh GC", 
-        "Newbridge GC",
-        "Corballis Links",
+        "Druids Heath", 
+        "TBC",
+        "TBC",
         "TBC"
         ), 
       Location = c(
         "Co. Wicklow", 
-        "Co. Kildare",
-        "Co. Dublin",
+        "TBC",
+        "TBC",
         "TBC"
         ), 
       'Defending Champion' = c(
         "N/A - New Major Venue", 
-        "Luke Smith",
-        "Billy Archbold",
+        "TBC",
+        "TBC",
         "N/A"
         ), 
       'Previous Major' = c(
         "N/A - New Major Venue", 
-        "2016-07-09",
-        "2015-06-28",
+        "TBC",
+        "TBC",
         "N/A"
         ), 
       'FedEx Cup Points' = c(
@@ -237,15 +236,15 @@ shinyServer(function(input, output, session) {
         650
         ), 
       lat = c(
-        53.02588032851557, 
-        53.20533609951484,
-        53.4703853985663,
+        53.09048505464224, 
+        NA,
+        NA,
         NA
         ), 
       lon = c(
-        -6.7391122773389105, 
-        -6.782317917430858,
-        -6.12539636091,
+        -6.079314444722932, 
+        NA,
+        NA,
         NA
         ),
       check.names=FALSE
@@ -715,13 +714,200 @@ shinyServer(function(input, output, session) {
   #  Would be great if I could implement the navigate to tab based on click. 
   
 
+  output$home <- renderUI({
 
+    f$req_sign_in()
+
+    HTML('
+      <!-- Example of media query for landscape prompt on specific tab.  
+      <div id="info">
+        <p>Integer velit nulla, condimentum vitae risus ut, rhoncus vulputate quam. Fusce lacus elit, accumsan eu dolor vel, scelerisque pretium turpis. Vivamus ac lectus vitae enim lacinia fringilla vel id tellus. Curabitur pharetra tortor eget risus ornare scelerisque. Morbi tempus et felis vitae venenatis. Suspendisse vitae ultrices est, nec sagittis arcu.</p>
+      </div> -->
+
+      <!-- Carousel -->
+      ================================================== 
+      <div id="" style ="margin-right:-15px; margin-left:-15px;" class="carousel slide" data-ride="carousel">
+        <div>
+          <div class="item active">
+            <img style="height: 100%; width: 100%; object-fit: cover" src="images/sthelensbay.jpeg" alt="1">
+            <div class="container">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /.carousel -->
+
+
+      <div class="container marketing">
+
+       <!-- <div class="row app-links">-->
+        <div class="col-xs-6 col-sm-6 col-md-4">
+          <!--<img src="images/calendar.svg" width="50%" alt="novice">-->
+          <a onclick="$(`li:eq(1) a`).tab(`show`);">
+            <i class="far fa-calendar-check"></i>
+          </a>
+          <div class="nav-icons">Schedule</div>
+        </div><!-- /.col-md-4 -->
+        <div class="col-xs-6 col-sm-6 col-md-4">
+          <a onclick="$(`li:eq(2) a`).tab(`show`);">
+            <i class="fas fa-trophy"></i>
+          </a>
+          <div class="nav-icons">FedEx</div>
+        </div><!-- /.col-md-4 -->
+        <div class="col-xs-6 col-sm-6 col-md-4">
+          <a onclick="$(`li:eq(3) a`).tab(`show`);">
+            <i class="fas fa-list-ol"></i>
+          </a>
+          <div class="nav-icons">OWGR</div>
+        </div><!-- /.col-md-4 -->
+       <!-- </div><!-- /.row -->
+      <!--<br>-->
+       <!--<div class="row app-links">-->
+        <div class="col-xs-6 col-sm-6 col-md-4">
+          <!--<img src="images/calendar.svg" width="50%" alt="novice">-->
+          <a onclick="$(`li:eq(5) a`).tab(`show`);">
+            <i class="fas fa-users"></i>
+          </a>
+          <div class="nav-icons">Players</div>
+        </div><!-- /.col-md-4 -->
+        <div class="col-xs-6 col-sm-6 col-md-4">
+          <a onclick="$(`li:eq(6) a`).tab(`show`);">
+            <i class="fas fa-chart-line"></i>
+          </a>
+          <div class="nav-icons">Stats</div>
+        </div><!-- /.col-md-4 -->
+        <div class="col-xs-6 col-sm-6 col-md-4">
+          <a onclick="$(`li:eq(7) a`).tab(`show`);">
+          <!--<i class="fas fa-users-cog"></i>-->
+          <i class="fas fa-archive"></i>
+          </a>
+          <div class="nav-icons">Results</div>
+        </div><!-- /.col-md-4 -->
+       <!--</div><!-- /.row -->
+      </div>
+
+       <br>
+       <br>
+
+        <!-- START THE FEATURETTES -->
+
+        <hr class="featurette-divider" > <!--style="border-top: 1px solid #504848 !important;">-->
+
+
+      <div class="container marketing">
+        <div class="row featurette center-on-xs">
+        <div class="col-md-5 col-md-push-7">
+          <img class="featurette-image img-responsive" src="images/pretty in pink.jpeg" alt = "">
+          <!--<iframe width="80%" height = "550" src="https://www.instagram.com/p/CDGoNSrAV9J/embed/" frameborder="0"></iframe>-->
+        </div>
+        <div class="col-md-7 col-md-pull-5">
+          <h2 class="featurette-heading">Pretty in Pink<br><span class="text-muted">Gearldine Comber</span></h2>
+          <p class="lead">Some people will do anything for a 36 handicap. <a data-toggle="collapse" data-parent="#accordionOne" href="#collapseOne">Read more&hellip;</a></p>
+           <div class="panel-group transparent-panel-group" id="accordionOne">
+              <div class="panel panel-default">
+                <div id="collapseOne" class="panel-collapse collapse">
+                  <div class="panel-body text-left">
+                    <p><img href="#" data-toggle="modal" data-target="#player-oisin" src="images/oisin.png" src="images/oisin.png" alt="Oisin Tyrell PNG" class="img-circle player_profile" style="width: 10%; height: 10%"><a href="#" data-toggle="modal" data-target="#player-oisin"> Oisin Tyrell,</a> Editor-in-chief</p>
+                    <blockquote class="blockquote">
+                      <p>
+                        Geraldine (as he wishes to go by these days) is determined to convince his competitors that he should both be allowed to play off the reds 
+                         while opting for a remarkable handicap of 36.  It appears this three time major winner is willing to do whatever it takes to win.  While
+                         this "killer" take-no-prisoners attitude is always bound to rub some people up the wrong way - his sheer cavalier nature has to be admired.
+                      </p>
+                      <br>
+                      <p>
+                        Do not let his "pretty-in-pink" style, or his superficial name change fool you.  Gearldine is a single-minded in his (or her) mission to 
+                        claim a fourth major title.
+                      </p>
+                      <br>
+                      <p>
+                        This reporter has been very recenty speaking with the PAP Tour player, formerly known as Gearoid. It seems the chips are stacked against 
+                        once again (certainly in his own mind), with the predictable flow of excuses; "I broke my driver last month"; "I am going for beers tongiht
+                        so I will be tired come Saturday morning"; "You chauvinist pigs wont even let me tee it up off the reds" etc...
+                      </p>
+                      <br>
+                      <p>
+                        Could this all be an elaborate ruse?  Smoke and mirrors and fifty shades of pink?  Only one person knows for sure.  
+                      </p>
+                      <br>
+                      <p>
+                        When the dust settles at 12:00 on Saturday morning, 24th June 2023 - we will all find out.  One things for sure - Geraldine will be teeing it
+                        up off 20, with the rest of the boys on the white tee box. 
+                      </p>
+                    </blockquote>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        </div>
+
+        <div style="height: 200px;"></div>
+
+        <hr class="featurette-divider" > <!--style="border-top: 1px solid #504848 !important;">-->
+
+        <div class="row featurette center-on-xs">
+        <div class="col-md-5">
+          <img class="featurette-image img-responsive" src="images/dr shanks.jpeg" alt = "">
+        </div>
+        <div class="col-md-7">
+          <h2 class="featurette-heading">Dr. Shanks<br></h2>
+          <p class="lead">Has the Doctor finally found a cure for his awful case of the shanks? <a data-toggle="collapse" data-parent="#accordionTwo" href="#collapseTwo">Read more&hellip;</a></p>
+           <div class="panel-group transparent-panel-group" id="accordionTwo">
+              <div class="panel panel-default">
+                <div id="collapseTwo" class="panel-collapse collapse">
+                  <div class="panel-body text-left">
+                    <p><img href="#" data-toggle="modal" data-target="#player-oisin" src="images/oisin.png" src="images/oisin.png" alt="Oisin Tyrell PNG" class="img-circle player_profile" style="width: 10%; height: 10%"><a href="#" data-toggle="modal" data-target="#player-oisin"> Oisin Tyrell,</a> Editor-in-chief</p>
+                    <blockquote class="blockquote">
+                    <p>
+                      You might wonder, why am I writing an article about myself?  Is this some kind of auto-biorgaphy?  No.  The simple fact is, I am a busy doctor 
+                      who has outsourced his duties as editor-in-chielf.  
+                    </p>
+                    <br>
+                    <p>
+                      This doctor is never off-duty.  When he is not saving lives or taking selfies with his stethoscope in the canteen, he can be sometimes found hiding 
+                      away in empty theatres, with a pen, a pad and a pitching wedge, trying to unravel the mystery (and misery) of why he so frequently shanks the golf ball.
+                    </p>
+                    <br>
+                    <p>
+                      His erratic swing and his love for the sciences is what earned Dr. Oisin Tyrell his nickname "Dr. Shanks" in the early days of his PAP Tour career.  Funnily 
+                      enough, the career path he ended up choosing was to become a doctor.  A man known for not taking his medicine out on the course, trying all too frequently 
+                      to pull off the hero shot, is now practicing what he dare not preach. 
+                    </p>
+                    <br>
+                    <p>
+                      In one of Dr. Shanks most recent (if not last) major starts - he arrived onto the tee box at Rathcore, hot off a grueling 24 hour shift.  Full 
+                      of coffee and hope, he quickly learned that sleep is one of the key ingridents to a successful major campaign.  The doctor well and truly shanked 
+                      his way around the course that day.  He can certainly be afforded some sympathy, given his noble profession and dedication to both his craft and 
+                      his tee time.
+                    </p>
+                    <br>
+                    <p>
+                      We are all hoping Dr. Shanks does not repeat this mis-step and books time off to sleep before his upcoming major start on 
+                      Saturday 24th June, 2023 - lest his nickname may swiftly transition to Dr. Stinky Stanks. 
+                    </p>
+                    </blockquote>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /END THE FEATURETTES -->
+
+    ')
+
+  })
 
 
   #### Section 2: Schedule
 
   # Schedule Table - Title. 
   output$majorScheduleTableTitle <- renderUI({
+
+    f$req_sign_in()
 
     div(
       div("Major Schedule", HTML("<i id='majorScheduleTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
@@ -734,6 +920,8 @@ shinyServer(function(input, output, session) {
   
   # Schedule Table - temp. 
   output$majorScheduleTable_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_schedule_data() 
@@ -753,22 +941,23 @@ shinyServer(function(input, output, session) {
       ),
       details = function(index) {
 
-        if (index %in% c(1, 2, 3)) {
+        #if (index %in% c(1, 2, 3)) {
+        if (index %in% c(1)) {
         
           map_data <- data[index, ]
    
           htmltools::div(
-            htmltools::div(style = "padding-top: 26px; padding-left: 10px; padding-right: 10px;",
-   
-              tags$iframe(
-                seamless = "seamless",
-                src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
-                width = "100%",
-                height = 250,
-                style = "border:0px;"
-              )
-   
-            ),
+            ##htmltools::div(style = "padding-top: 26px; padding-left: 10px; padding-right: 10px;",
+            ##
+            ##  tags$iframe(
+            ##    seamless = "seamless",
+            ##    src = paste0("https://forecast.io/embed/#lat=", map_data$lat, "&lon=", map_data$lon, "&name=", map_data$Course, ", ", map_data$Location, "&units=ca"),
+            ##    width = "100%",
+            ##    height = 250,
+            ##    style = "border:0px;"
+            ##  )
+            ##
+            ##),
             htmltools::div(style = "padding-top: 0px; padding-left: 10px; padding-right: 10px; padding-bottom: 100px;",
    
               leaflet(options = leafletOptions(attributionControl = FALSE)) %>% 
@@ -823,6 +1012,8 @@ shinyServer(function(input, output, session) {
   # Schedule Table. 
   output$majorScheduleTable <- renderUI({
     
+    f$req_sign_in()
+
    if(input$isMobile){
      var_width <- "width:90%;"
    } 
@@ -900,6 +1091,8 @@ shinyServer(function(input, output, session) {
 
   # fedExHeadlineBox
   output$fedEx_fedExHeadlineBox <- renderUI({
+
+    f$req_sign_in()
 
     # Load data. 
     # TO DO:
@@ -1019,6 +1212,9 @@ shinyServer(function(input, output, session) {
 
   # Points Leader
   output$rankingPlayer <- renderUI({
+
+    f$req_sign_in()
+
     outputValue <- "Billy Archbold"
     labelIcon <- tags$i(class = "fad fa-digging fa-fw")
     labelText = "Golfer of the Year"
@@ -1027,6 +1223,9 @@ shinyServer(function(input, output, session) {
 
   # World Ranking Points
   output$rankingPoints <- renderUI({
+
+    f$req_sign_in()
+
     outputValue <- 34
     labelIcon <- tags$i(class = "fad fa-digging fa-fw")
     labelText = "OWGR Points"
@@ -1035,6 +1234,8 @@ shinyServer(function(input, output, session) {
 
   # FedEx Cup Table - Title.
   output$fedExCupMainTableTitle <- renderUI({
+
+    f$req_sign_in()
 
     data <- fedex_data()
 
@@ -1051,6 +1252,8 @@ shinyServer(function(input, output, session) {
 
   # FedEx Cup Table - temp.
   output$fedExCupMainTable_temp <- renderReactable({
+
+    f$req_sign_in()
 
     if(input$isMobile){
       var_width <- 150
@@ -1243,6 +1446,8 @@ shinyServer(function(input, output, session) {
   # FedEx Cup Table.
   output$fedExCupMainTable <- renderUI({
 
+    f$req_sign_in()
+
    if(input$isMobile){
      var_width <- "width:90%;"
    } 
@@ -1257,6 +1462,8 @@ shinyServer(function(input, output, session) {
   # FedEx Cup History Table - Title.
   output$fedExCupHistoryTableTitle <- renderUI({
 
+    f$req_sign_in()
+
     data <- fedex_data()
 
     div(
@@ -1270,6 +1477,8 @@ shinyServer(function(input, output, session) {
 
   # FedEx Cup History Table - temp.
   output$fedExCupHistoryTable_temp <- renderReactable({
+
+    f$req_sign_in()
 
     if(input$isMobile){
       var_width <- 150
@@ -1448,16 +1657,12 @@ shinyServer(function(input, output, session) {
       }
     )
 
-
-
-
-
-
-
   })
 
   # FedEx Cup History Table.
   output$fedExCupHistoryTable <- renderUI({
+
+    f$req_sign_in()
 
    if(input$isMobile){
      var_width <- "width:90%;"
@@ -1523,6 +1728,8 @@ shinyServer(function(input, output, session) {
 
   # FedEx Infographic
   output$fedexInfogrphic <- renderUI({
+
+    f$req_sign_in()
 
     div(style = "margin:50px;",
       HTML('    
@@ -1609,6 +1816,8 @@ shinyServer(function(input, output, session) {
   # owgrHeadlineBox
   output$owgr_owgrHeadlineBox <- renderUI({
 
+    f$req_sign_in()
+
     # Load data. 
     data <- owgr_tseries()
     players_data <- players_data()
@@ -1658,6 +1867,8 @@ shinyServer(function(input, output, session) {
   # OWGR Timeseries Chart.
   output$owgrTimeseries <- renderPlotly({
 
+    f$req_sign_in()
+
     # Load OWGR Timeseries data. 
     data <- owgr_tseries()
 
@@ -1699,6 +1910,8 @@ shinyServer(function(input, output, session) {
   # OWGR Timeseries Chart (conditional UI for mobile/desktop)
   output$owgrTimeseries_conditional <- renderUI({
 
+    f$req_sign_in()
+
     if(input$isMobile){
       div(NULL)
     }else{
@@ -1716,6 +1929,8 @@ shinyServer(function(input, output, session) {
   # OWGR Table - Title. 
   output$owgrMainTableTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("OWGR Rankings", HTML("<i id='owgrMainTableTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -1727,6 +1942,8 @@ shinyServer(function(input, output, session) {
 
   # OWGR Table - temp.
   output$owgrMainTable_temp <- renderReactable({
+
+    f$req_sign_in()
 
     if(input$isMobile){
       var_width <- 120
@@ -1928,6 +2145,8 @@ shinyServer(function(input, output, session) {
 
   # OWGR Table. 
   output$owgrMainTable <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:90%;"
@@ -1946,6 +2165,8 @@ shinyServer(function(input, output, session) {
 
   # OWGR Infographic
   output$owgrInfogrphic <- renderUI({
+
+    f$req_sign_in()
 
     div(style = "margin:50px;",
       HTML('    
@@ -2139,6 +2360,8 @@ shinyServer(function(input, output, session) {
   #owgrHeadlineBox
   output$owgrHeadlineBox <- renderUI({
 
+    f$req_sign_in()
+
     # Load data. 
     data <- owgr_tseries()
     players_data <- players_data()
@@ -2187,6 +2410,8 @@ shinyServer(function(input, output, session) {
 
   #fedExHeadlineBox
   output$fedExHeadlineBox <- renderUI({
+
+    f$req_sign_in()
 
     # Load data. 
     # TO DO:
@@ -2307,6 +2532,8 @@ shinyServer(function(input, output, session) {
   #majorWinsHeadlineBox
   output$majorWinsHeadlineBox <- renderUI({
 
+    f$req_sign_in()
+
     # Load data. 
     data <- major_results_data()
     players_data <- players_data()
@@ -2362,6 +2589,8 @@ shinyServer(function(input, output, session) {
   #lowestHanicapHeadlineBox
   output$lowestHanicapHeadlineBox <- renderUI({
 
+    f$req_sign_in()
+
     # Load data.
     data <- major_results_data()
     players_data <- players_data()
@@ -2406,6 +2635,8 @@ shinyServer(function(input, output, session) {
   # OWGR - Title. 
   output$owgrTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("OWGR Rankings", HTML("<i id='owgrTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -2417,6 +2648,8 @@ shinyServer(function(input, output, session) {
 
   # OWGR - temp.
   output$owgr_temp <- renderReactable({
+
+    f$req_sign_in()
 
     if(input$isMobile){
       var_width <- 150
@@ -2496,6 +2729,8 @@ shinyServer(function(input, output, session) {
 
   # OWGR Cup. 
   output$owgr <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -2510,6 +2745,8 @@ shinyServer(function(input, output, session) {
 
   # See More button for OWGR tab.
   output$owgrSeeMore <- renderUI({
+
+    f$req_sign_in()
 
     actionLink("owgrSeeMore_input", "See More")
 
@@ -2526,6 +2763,8 @@ shinyServer(function(input, output, session) {
   # FedEx Cup - Title. 
   output$fedExCupTitle <- renderUI({
 
+    f$req_sign_in()
+
     data <- fedex_data()
 
     div(
@@ -2539,6 +2778,8 @@ shinyServer(function(input, output, session) {
 
   # FedEx Cup - temp.
   output$fedExCup_temp <- renderReactable({
+
+    f$req_sign_in()
 
     if(input$isMobile){
       var_width <- 150
@@ -2674,6 +2915,8 @@ shinyServer(function(input, output, session) {
 
   # FedEx Cup. 
   output$fedExCup <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -2688,6 +2931,8 @@ shinyServer(function(input, output, session) {
 
   # See More button for FedExCup tab.
   output$fedExCupSeeMore <- renderUI({
+
+    f$req_sign_in()
 
     actionLink("fedExCupSeeMore_input", "See More")
 
@@ -2705,6 +2950,8 @@ shinyServer(function(input, output, session) {
   # Handicaps - Title. 
   output$handicapsTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("Handicaps", HTML("<i id='handicapsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -2716,6 +2963,8 @@ shinyServer(function(input, output, session) {
   
   # Handicaps - temp. 
   output$handicaps_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- handicaps_data()
@@ -2774,6 +3023,8 @@ shinyServer(function(input, output, session) {
 
   # Handicaps. 
   output$handicaps <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -2788,6 +3039,8 @@ shinyServer(function(input, output, session) {
   
   # See More button for Handicaps tab.
   output$handicapsSeeMore <- renderUI({
+
+    f$req_sign_in()
 
     actionLink("handicapsSeeMore_input", "See More")
 
@@ -2805,6 +3058,8 @@ shinyServer(function(input, output, session) {
   # Major Wins - Title. 
   output$majorWinsTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("Major Wins", HTML("<i id='majorWinsTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -2816,6 +3071,8 @@ shinyServer(function(input, output, session) {
 
   # Number of Major Wins - temp.
   output$majorWins_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -2896,6 +3153,8 @@ shinyServer(function(input, output, session) {
 
   # Number of Major Wins.
   output$majorWins <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -2913,6 +3172,8 @@ shinyServer(function(input, output, session) {
   # Top 3 Finishes - Title. 
   output$topThreeFinishesTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("Top 3 Finishes", HTML("<i id='topThreeFinishesTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -2924,6 +3185,8 @@ shinyServer(function(input, output, session) {
 
   # Number of Top 3 Finishes - temp.
   output$topThreeFinishes_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -3000,6 +3263,8 @@ shinyServer(function(input, output, session) {
 
   # Number of Top 3 Finishes.
   output$topThreeFinishes <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -3018,6 +3283,8 @@ shinyServer(function(input, output, session) {
   # Major Attendance - Title.
   output$majorAttendanceTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("Major Attendance", HTML("<i id='majorAttendanceTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -3029,6 +3296,8 @@ shinyServer(function(input, output, session) {
 
   # Major Attendance - temp.
   output$majorAttendance_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -3090,6 +3359,8 @@ shinyServer(function(input, output, session) {
 
   # Major Attendance.
   output$majorAttendance <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -3107,6 +3378,8 @@ shinyServer(function(input, output, session) {
   # Average Scoring - Title.
   output$avgScoringTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("Average Scoring", HTML("<i id='avgScoringeTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -3118,6 +3391,8 @@ shinyServer(function(input, output, session) {
 
   # Average Scoring - temp. 
   output$avgScoring_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -3183,6 +3458,8 @@ shinyServer(function(input, output, session) {
 
   # Average Scoring.
   output$avgScoring <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -3200,6 +3477,8 @@ shinyServer(function(input, output, session) {
   # Wooden Spoon - Title. 
   output$woodenSpoonTitle <- renderUI({
 
+    f$req_sign_in()
+
     div(
       div("Wooden Spoon", HTML("<i id='woodenSpoonTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -3211,6 +3490,8 @@ shinyServer(function(input, output, session) {
   
   # Wooden Spoon - temp. 
   output$woodenSpoon_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -3280,6 +3561,8 @@ shinyServer(function(input, output, session) {
 
   # Wooden Spoon. 
   output$woodenSpoon <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -3296,6 +3579,9 @@ shinyServer(function(input, output, session) {
   # Venue Frequency - Title. 
   output$venueFrequencyTitle <- renderUI({
 
+
+    f$req_sign_in()
+
     div(
       div("Venue Frequency", HTML("<i id='venueFrequencyTitleID' style='font-size:20px;' class='fas fa-info-circle'></i>"), class="table-title"),
       style = "margin-left:10px;",
@@ -3307,6 +3593,8 @@ shinyServer(function(input, output, session) {
   
   # Venue Frequency - temp. 
   output$venueFrequency_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -3356,6 +3644,8 @@ shinyServer(function(input, output, session) {
 
   # Venue Frequency. 
   output$venueFrequency <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:100%;"
@@ -3377,6 +3667,8 @@ shinyServer(function(input, output, session) {
   # handicapsHeadlineBox
   output$handicapsHeadlineBox <- renderUI({
 
+    f$req_sign_in()
+
     # Load data. 
     data <- handicaps_data()
 
@@ -3391,6 +3683,8 @@ shinyServer(function(input, output, session) {
 
   # Handicap Timeseries Chart.
   output$handicapsTimeseries <- renderPlotly({
+
+    f$req_sign_in()
 
     # Load Handicap Timeseries Data. 
     data <- handicap_timeseries()
@@ -3432,6 +3726,8 @@ shinyServer(function(input, output, session) {
   # Handicap Timeseries Chart (conditional UI for mobile/desktop)
   output$handicapsTimeseries_conditional <- renderUI({
 
+    f$req_sign_in()
+
     if(input$isMobile){
       div(NULL)
     }else{
@@ -3448,6 +3744,8 @@ shinyServer(function(input, output, session) {
 
   # Handicap Table - Title. 
   output$handicapsTableTitle <- renderUI({
+
+    f$req_sign_in()
 
     div(
       div(
@@ -3525,6 +3823,8 @@ shinyServer(function(input, output, session) {
 
   # Handicap Table - temp. 
   output$handicapsTable_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     #data <- handicaps_data()
@@ -3674,6 +3974,8 @@ shinyServer(function(input, output, session) {
 
   # Handicap Table. 
   output$handicapsTable <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:90%;"
@@ -3741,7 +4043,153 @@ shinyServer(function(input, output, session) {
 
   #### Section 6: Players
   # There is no server logic for the Players tab- it's all contained in the about.html file. 
+  output$about <- renderUI({
 
+    f$req_sign_in()
+
+    HTML('
+      <div style="height:20px;"></div>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12">
+              <h1 style="font-weight:bold !important; font-size:48px !important; color:#416983;">pap pro tour</h1>
+            </div>
+          </div>
+          <div class="marketing">
+            <div class="row">
+              <div class="col-md-4">
+                <!--<a href="#" data-toggle="modal" data-target="#modal-credits">Credits &amp; Disclaimer</a>-->
+                <img href="#" data-toggle="modal" data-target="#player-billy" class="img-circle player_profile" src="images/billy.png" alt="">
+                <h2>Billy Archbold</h2>
+                <p>Itchy and Scratchy</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-t" class="img-circle player_profile" src="images/t.png" alt="">
+                <h2>Tiarnan OBrien</h2>
+                <p>Dhinininininino</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-dinny" class="img-circle player_profile" src="images/dinny.png" alt="">
+                <h2>Dan Courtney</h2>
+                <p>The Bionic Man</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-g" class="img-circle player_profile" src="images/g.png" alt="">
+                <h2>Gearoid Comber</h2>
+                <p>Garry Slice</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-winnie" class="img-circle player_profile" src="images/winnie.png" alt="">
+                <h2>Sean Whitson</h2>
+                <p>Winnie-the-Pooh</p>
+                <!--<a href="https://www.linkedin.com/in/leon-shim-9925a8b/">LinkedIn</a>-->
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-smith" class="img-circle player_profile" src="images/smith.png" alt="">
+                <h2>Luke Smith</h2>
+                <p>Crocodile Dundee</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-davidbenn" class="img-circle player_profile" src="images/davidbenn.png" alt="">
+                <h2>David Benn</h2>
+                <p>Big Benn</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-aronmorris" class="img-circle player_profile" src="images/aronmorris.png" alt="">
+                <h2>Aron Morris</h2>
+                <p>International Man of Mystery</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-craighyland" class="img-circle player_profile" src="images/craighyland.png" alt="">
+                <h2>Craig Hyland</h2>
+                <p>Hylos Box</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-sheano" class="img-circle player_profile" src="images/sheano.png" alt="">
+                <h2>Darragh Sheehan</h2>
+                <p>Deano, Smelly Peter</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-davidlynch" class="img-circle player_profile" src="images/davidlynch.png" alt="">
+                <h2>David Lynch</h2>
+                <p>Billy Walsh</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-faylo" class="img-circle player_profile" src="images/faylo.png" alt="">
+                <h2>Feidhlim Dowling</h2>
+                <p>Forrest Gump, Lightning Bolt</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-markdonnelly" class="img-circle player_profile" src="images/markdonnelly.png" alt="">
+                <h2>Mark Donnelly</h2>
+                <p>Yankee Doodle</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-nialldevane" class="img-circle player_profile" src="images/nialldevane.png" alt="">
+                <h2>Niall Devane</h2>
+                <p>The Cow Whisperer</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-seaniemac" class="img-circle player_profile" src="images/seaniemac.png" alt="">
+                <h2>Seany Mac</h2>
+                <p>Return of the Mac</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-oisin" class="img-circle player_profile" src="images/oisin.png" alt="">
+                <h2>Dr. Oisin Tyrell</h2>
+                <p>Dr. Shanks</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-messy" class="img-circle player_profile" src="images/messy.png" alt="">
+                <h2>Eoin Messitt</h2>
+                <p>The Golf Ghost</p>
+              </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-piggy" class="img-circle player_profile" src="images/piggy.png" alt="">
+                <h2>Stephen Pigott</h2>
+                <p>Piggie Wiggie</p>
+              </div> 
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-philmahon" class="img-circle player_profile" src="images/philmahon.png" alt="">
+                <h2>Phil Mahon</h2>
+                <p>Phil the Thrill</p>
+              </div>  
+            <div class="col-md-4">
+              <img href="#" data-toggle="modal" data-target="#player-iancox" class="img-circle player_profile" src="images/iancox.png" alt="">
+              <h2>Ian Cox</h2>
+              <p>The Jack Hammer</p>
+            </div>
+              <div class="col-md-4">
+                <img href="#" data-toggle="modal" data-target="#player-davemcgrath" class="img-circle player_profile" src="images/davemcgrath.png" alt="">
+                <h2>Dave McGrath</h2>
+                <p>Ravey Davey</p>
+              </div>
+            </div>
+            <div class="row">    
+              <div class="col-md-4">
+                <!--<a href="#" data-toggle="modal" data-target="#modal-credits">Credits &amp; Disclaimer</a>-->
+                <img href="#" data-toggle="modal" data-target="#player-willmolloy" class="img-circle player_profile" src="images/willmolloy.png" alt="">
+                <h2>Will Molloy</h2>
+                <p>DJ Skwillex</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ')
+
+  })
 
 
 
@@ -3753,6 +4201,8 @@ shinyServer(function(input, output, session) {
 
   # majorWinsHeadlineBox
   output$results_majorWinsHeadlineBox <- renderUI({
+
+    f$req_sign_in()
 
     # Load data. 
     data <- major_results_data()
@@ -3808,6 +4258,8 @@ shinyServer(function(input, output, session) {
 
   # Results Table - Title. 
   output$majorResultsTableTitle <- renderUI({
+
+    f$req_sign_in()
 
     # Get logged in user info.
     user <- f$get_signed_in()$response$displayName
@@ -3913,6 +4365,8 @@ shinyServer(function(input, output, session) {
 
   # Results Table - temp. 
   output$majorResultsTable_temp <- renderReactable({
+
+    f$req_sign_in()
 
     # Load data.
     data <- major_results_data()
@@ -4064,6 +4518,8 @@ shinyServer(function(input, output, session) {
 
   # Results Table. 
   output$majorResultsTable <- renderUI({
+
+    f$req_sign_in()
     
    if(input$isMobile){
      var_width <- "width:90%;"
@@ -4159,6 +4615,8 @@ shinyServer(function(input, output, session) {
 
   # Upload Results Modal - Add.
   uploadResults <- function(failed = FALSE) {
+
+    f$req_sign_in()
 
     # Get golfers & current handicaps for writing major results data to DB. 
     data <- handicaps_data()
@@ -4264,7 +4722,7 @@ shinyServer(function(input, output, session) {
         # Show the error message
         div(addWarning$message, style = "color: red; margin-left:15px;"),
       
-      footer = tagList(
+      footer = htmltools::tagList(
         actionButton("uploadResults", "Upload Results"),
         actionButton("cancelUploadResults", "Cancel")
       ), size = 'm', easyClose = TRUE
@@ -4283,6 +4741,8 @@ shinyServer(function(input, output, session) {
   # Edit Results Modal - Add.
   editResults <- function(failed = FALSE) {
 
+    f$req_sign_in()
+
     # Create modal UI.
     modalDialog(
       div(
@@ -4296,7 +4756,7 @@ shinyServer(function(input, output, session) {
         # Show the error message
         div(addWarning$message, style = "color: red; margin-left:15px;"),
       
-      footer = tagList(
+      footer = htmltools::tagList(
         actionButton("saveEditedResults", "Save Edits"),
         actionButton("cancelEditedResults", "Cancel")
       ), size = 'l', easyClose = TRUE
@@ -4321,6 +4781,8 @@ shinyServer(function(input, output, session) {
 
   # Results Table - Edit.
   output$resultsTable_edit <- DT::renderDataTable({
+
+    f$req_sign_in()
     
     #data <- rv$resultsTable_temp
     data <- major_results_data()
@@ -4546,6 +5008,8 @@ shinyServer(function(input, output, session) {
   
   # Results Table.
   output$resultsTable <- DT::renderDataTable({
+
+    f$req_sign_in()
     
     #data <- results_df()
     data <- rv$resultsTable_temp
@@ -4587,7 +5051,568 @@ shinyServer(function(input, output, session) {
 
 
 
+  output$footer <- renderUI({
 
+    f$req_sign_in()
+
+    HTML('
+
+
+      <div class="container">
+        <img src="logo.png" alt="logo" class="center-block img-responsive" width="300" style="margin-bottom: 80px;" />
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+        .fa {
+          padding-bottom: 20px;
+          font-size: 30px;
+          width: 30px;
+          text-align: center;
+          text-decoration: none;
+          margin: 5px 2px;
+          border-radius: 50%;
+          color: #202020;
+        }
+        
+        .fa:hover {
+            opacity: 0.7;
+            text-decoration: none;
+            color: #202020;
+        }
+        
+        .fa:active  {
+            text-decoration: none;
+            color: #202020;
+        }
+        
+        .fa:visited  {
+            text-decoration: none;
+            color: #202020;
+        }
+        
+        </style>
+        
+        <!-- Add font awesome icons -->
+        <div style = "margin-left:-5px;">
+        <!--<a href="#" class="fa fa-facebook"></a>-->
+        <a href="#" class="fa fa-twitter"></a>
+        <a href="#" class="fa fa-youtube"></a>
+        <a href="#" class="fa fa-instagram"></a>
+        <!--<a href="#" class="fa fa-vimeo"></a>-->
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>Putt & Pint Pro Tour&mdash;2022</p>
+        <p><a href="#" data-toggle="modal" data-target="#modal-credits">Credits &amp; Disclaimer</a></p>
+        </footer>
+
+      </div>
+
+      <!-- Modal - Credits -->
+      <div class="modal fade" id="modal-credits" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Credits</h4>
+        </div>
+        <div class="modal-body">
+          <p>Brought to you by Billy Archbold, Tiarnán OBrien & Oisin Tyrell, 2022.</p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+
+
+      <!-- Player Profiles -->
+
+      <!-- PAP PRO TOUR -->
+
+      <div class="modal fade" id="player-billy" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Billy Archbold</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/billy.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Effective, slow tempo fish face swing. Length off the tee.</p>
+          <p><b>Weaknesses: </b> Once you’re in his head its GAME OVER. Very easy to wind up. Can chunk it BAD.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-t" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Tiarnan OBrien</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/t.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Calculating and tactical with a consistent iron swing.</p>
+          <p><b>Weaknesses: </b>Length off the tee.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-dinny" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Dan Courtney</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/dinny.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Self-belief and resilience. Has the ability to shape shots when needed.</p>
+          <p><b>Weaknesses: </b>Hips. Playoffs. Stamina on the back nine. Mind games.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-g" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Gearoid Comber</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/g.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Can hit it right to left.</p>
+          <p><b>Weaknesses: </b> Can ONLY hit it right to left.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-winnie" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Sean Whitson</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/winnie.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Incredible distance off the tee.</p>
+          <p><b>Weaknesses: </b> Can let the pressure get to him.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-smith" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Luke Smith</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/smith.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Deadly accurate from wthin 100 yards. Super temperament.</p>
+          <p><b>Weaknesses: </b> Can be VERY erratic off the tee.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-davidbenn" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">David Benn</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/davidbenn.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Usually very accurate with the rescue off the tee.</p>
+          <p><b>Weaknesses: </b> So many, but to name a few.... Biggest man with the weakest brain. Self belief is non existent.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-aronmorris" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Aron Morris</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/aronmorris.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Has learned the ancient Chinese ways golf Zen. </p>
+          <p><b>Weaknesses: </b> Has yet to convert these learnings into results on the course.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-craighyland" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Craig Hyland</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/craighyland.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Has trialled roughly 60-70% of all golf clubs in Ireland. Rapid improvement since joining the tour, almost winning a major on multiple occasions, future major winner.</p>
+          <p><b>Weaknesses: </b> Too busy putting the fire out instead of igniting it.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-sheano" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Darragh Sheehan</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/sheano.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Vast array of nicknames.</p>
+          <p><b>Weaknesses: </b> Quite a bad smelly you know what.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-davidlynch" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">David Lynch</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/davidlynch.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Has every shot, knows all the angles, has some of the best equipment.</p>
+          <p><b>Weaknesses: </b> Unfortunately for Lynch, Im not talking about his golf game. </p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-faylo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Feidhlim Dowling</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/faylo.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Fastest man on tour, super stamina. </p>
+          <p><b>Weaknesses: </b> Very fond of a wooden spoon.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-markdonnelly" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Mark Donnelly</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/markdonnelly.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Big drive. Grew up playing golf at elite level among some of the tours finest in Naas Golf Club. </p>
+          <p><b>Weaknesses: </b> Lack of major experience.  Likes to travel light, sometimes forgetting to pack any clothes at all - let alone golf gear. </p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-nialldevane" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Niall Devane</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/nialldevane.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Smooth, natual swing and great ball-striking. No doubt a natural convert from hurling.</p>
+          <p><b>Weaknesses: </b> Easily distractable. Mind always on the farm.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-seaniemac" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Seanie Mac</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/seaniemac.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Very athletic, doesnt feel the pressure. </p>
+          <p><b>Weaknesses: </b> Has lost that competitive edge ever since his inaugural major win. Once offered to caddie for Dan instead of play the major himself. </p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+      <div class="modal fade" id="player-oisin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Dr. Oisin Tyrell</h4>
+        </div>
+        <div class="modal-body">
+          <img class="img-circle player_profile img-container" src="images/oisin.png" alt="">
+          <br><br>
+          <p><b>Strengths: </b> Best LOOKING swing on tour.</p>
+          <p><b>Weaknesses: </b> Water. Hazards. Sand. Every club he owns seems to be customised with extra loft.</p>
+          <p></p>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+
+
+      <div class="modal fade" id="player-messy" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">Eoin Messitt</h4>
+          </div>
+          <div class="modal-body">
+            <img class="img-circle player_profile img-container" src="images/messy.png" alt="">
+            <br><br>
+            <p><b>Strengths: </b> Unknown.</p>
+          <p><b>Weaknesses: </b> Unknown.</p>
+          <p></p>
+          </div>
+          <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+        
+      <div class="modal fade" id="player-iancox" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">Ian Cox</h4>
+          </div>
+          <div class="modal-body">
+            <img class="img-circle player_profile img-container" src="images/iancox.png" alt="">
+            <br><br>
+            <p><b>Strengths: </b> First out in first group tee shots in front of the whole tour allegedly dont get to him. Purest 3 iron on tour, half swing perfection, silky smooth with the wedges! </p>
+          <p><b>Weaknesses: </b> First out in first group tee shots in front of the whole tour probably will get to him.</p>
+          <p></p>
+          </div>
+          <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+          
+      <div class="modal fade" id="player-piggy" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">Stephen Pigott</h4>
+          </div>
+          <div class="modal-body">
+            <img class="img-circle player_profile img-container" src="images/piggy.png" alt="">
+            <br><br>
+            <p><b>Strengths: </b> A natural ball-striker, no doubt easily transitioned from his hurling prowess.</p>
+          <p><b>Weaknesses: </b> Sometimes too heavy-handed around the greens. Could potentially leave mid-round to go surfing if a strong off-shore wind floats in. </p>
+          <p></p>
+          </div>
+          <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+        
+      <div class="modal fade" id="player-philmahon" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">Phil Mahon</h4>
+          </div>
+          <div class="modal-body">
+            <img class="img-circle player_profile img-container" src="images/philmahon.png" alt="">
+            <br><br>
+            <p><b>Strengths: </b> Has a cannon off the tee, past holder of long-drive competition in a major.</p>
+          <p><b>Weaknesses: </b> Drive for show, putt for dough. If Phil the Thrill can improve in the areas so well versed by his nick-namesake, he will be a real contender in the future. </p>
+          <p></p>
+          </div>
+          <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+
+        <div class="modal fade" id="player-davemcgrath" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">Dave McGrath</h4>
+            </div>
+            <div class="modal-body">
+              <img class="img-circle player_profile img-container" src="images/davemcgrath.png" alt="">
+              <br><br>
+              <p><b>Strengths: </b> Has a very positive attitude when the putts are rolling in. </p>
+          <p><b>Weaknesses: </b> The putts... they dont roll in that often.</p>
+          <p></p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+          </div><!-- /.modal-content -->
+          </div><!-- /.modal-dialog -->
+          </div><!-- /.modal -->
+
+          <div class="modal fade" id="player-willmolloy" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">Will Molloy</h4>
+              </div>
+              <div class="modal-body">
+                <img class="img-circle player_profile img-container" src="images/willmolloy.png" alt="">
+                <br><br>
+                <p><b>Strengths: </b> Good 5-aside player.</p>
+          <p><b>Weaknesses: </b> Looks out of place in an 11-aside game.</p>
+          <p></p>
+              </div>
+              <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              </div>
+            </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+                  
+
+
+
+      <script src="plugins/fittext_1.2/jquery.fittext.js"></script>
+      <script src="plugins/fittext.js"></script>
+
+      <script type="text/javascript">
+        jQuery(".fit-h1").fitText(1.2, { minFontSize: "32px", maxFontSize: "38px" });
+        jQuery(".fit-h2").fitText(1.2, { minFontSize: "18px", maxFontSize: "26px" });
+        jQuery(".fit-text").fitText(0.8, { minFontSize: "18px", maxFontSize: "24px" });
+      </script>
+
+
+    ')
+
+  })
 
 
 
