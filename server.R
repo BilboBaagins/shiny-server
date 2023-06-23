@@ -810,20 +810,20 @@ shinyServer(function(input, output, session) {
                     <p><img href="#" data-toggle="modal" data-target="#player-oisin" src="images/oisin.png" src="images/oisin.png" alt="Oisin Tyrell PNG" class="img-circle player_profile" style="width: 10%; height: 10%"><a href="#" data-toggle="modal" data-target="#player-oisin"> Oisin Tyrell,</a> Editor-in-chief</p>
                     <blockquote class="blockquote">
                       <p>
-                        Geraldine (as he wishes to go by these days) is determined to convince his competitors that he should both be allowed to play off the reds 
-                         while opting for a remarkable handicap of 36.  It appears this three time major winner is willing to do whatever it takes to win.  While
+                        Geraldine (as he wishes to go by these days) is determined to convince his competitors that he should both be allowed to play off the red tees 
+                         while being allowed brandish an outrageous handicap of 36.  It appears this three time major winner is willing to do whatever it takes to win.  While
                          this "killer" take-no-prisoners attitude is always bound to rub some people up the wrong way - his sheer cavalier nature has to be admired.
                       </p>
                       <br>
                       <p>
-                        Do not let his "pretty-in-pink" style, or his superficial name change fool you.  Gearldine is a single-minded in his (or her) mission to 
+                        Do not let his "pretty-in-pink" style, or his superficial name change fool you.  Gearldine is single-minded in his (or her) mission to 
                         claim a fourth major title.
                       </p>
                       <br>
                       <p>
-                        This reporter has been very recenty speaking with the PAP Tour player, formerly known as Gearoid. It seems the chips are stacked against 
-                        once again (certainly in his own mind), with the predictable flow of excuses; "I broke my driver last month"; "I am going for beers tongiht
-                        so I will be tired come Saturday morning"; "You chauvinist pigs wont even let me tee it up off the reds" etc...
+                        This reporter has recenty been speaking with the PAP Tour player formerly known as Gearoid. It seems the chips are stacked against him 
+                        once again (certainly in his own mind), with the predictable flow of excuses wafting in; "I broke my driver last month"; "I am going for beers tongiht
+                        so I will be off it in the morning"; "You chauvinist pigs wont even let me tee it up off the reds" etc...
                       </p>
                       <br>
                       <p>
