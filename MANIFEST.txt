@@ -1,5 +1,0 @@
-global.R
-server.R
-ui.R
-data/
-www/

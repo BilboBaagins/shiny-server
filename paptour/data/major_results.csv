@@ -1,0 +1,158 @@
+Major,Date,Player,Handicap,Score,playoff_win,Venue
+19,25/07/2020,Sean Whitson,12,39,,Craddockstown
+19,25/07/2020,Dan Courtney,21,33,,Craddockstown
+19,25/07/2020,Oisin Tyrell,19,32,,Craddockstown
+19,25/07/2020,Luke Smith,13,31,,Craddockstown
+19,25/07/2020,Stephen Pigott,28,27,,Craddockstown
+19,25/07/2020,David Benn,21,27,,Craddockstown
+19,25/07/2020,Gearoid Comber,22,25,,Craddockstown
+19,25/07/2020,Darragh Sheehan,22,25,,Craddockstown
+19,25/07/2020,Craig Hyland,23,23,,Craddockstown
+19,25/07/2020,Aron Morris,26,22,,Craddockstown
+19,25/07/2020,Tiarnan O'Brien,26,21,,Craddockstown
+19,25/07/2020,Seanie McDermott,27,19,,Craddockstown
+19,25/07/2020,Ian Cox,30,14,,Craddockstown
+19,25/07/2020,Dave McGrath,30,11,,Craddockstown
+19,25/07/2020,Phil Mahon,30,10,,Craddockstown
+18,05/10/2019,Luke Smith,18,28,,Kilkenny
+18,05/10/2019,Billy Archbold,15,23,,Kilkenny
+18,05/10/2019,Niall Devane,21,22,,Kilkenny
+18,05/10/2019,Sean Whitson,18,22,,Kilkenny
+18,05/10/2019,Oisin Tyrell,20,20,,Kilkenny
+18,05/10/2019,Craig Hyland,25,19,,Kilkenny
+18,05/10/2019,Seanie McDermott,29,16,,Kilkenny
+18,05/10/2019,Dan Courtney,22,15,,Kilkenny
+18,05/10/2019,Stephen Pigott,28,14,,Kilkenny
+17,24/08/2019,Billy Archbold,17,36,1,St Helens Bay
+17,24/08/2019,Dan Courtney,23,36,2,St Helens Bay
+17,24/08/2019,Craig Hyland,25,34,,St Helens Bay
+17,24/08/2019,Tiarnan O'Brien,28,34,,St Helens Bay
+17,24/08/2019,David Benn,22,33,,St Helens Bay
+17,24/08/2019,Aron Morris,28,32,,St Helens Bay
+17,24/08/2019,Faylo,28,31,,St Helens Bay
+17,24/08/2019,Darragh Sheehan,23,26,,St Helens Bay
+17,24/08/2019,Seanie McDermott,28,24,,St Helens Bay
+16,06/07/2019,Billy Archbold,19,39,,Dunmurray Springs
+16,06/07/2019,Craig Hyland,27,38,,Dunmurray Springs
+16,06/07/2019,Gearoid Comber,22,37,,Dunmurray Springs
+16,06/07/2019,Oisin Tyrell,19,33,,Dunmurray Springs
+16,06/07/2019,David Benn,22,31,,Dunmurray Springs
+16,06/07/2019,Dan Courtney,23,30,,Dunmurray Springs
+16,06/07/2019,David Lynch,30,28,,Dunmurray Springs
+16,06/07/2019,Seanie McDermott,28,28,,Dunmurray Springs
+16,06/07/2019,Faylo,28,27,,Dunmurray Springs
+15,02/05/2019,Mark Donnelly,18,27,,Cancun
+15,02/05/2019,Gearoid Comber,21,24,,Cancun
+15,02/05/2019,David Benn,21,22,,Cancun
+15,02/05/2019,Oisin Tyrell,21,22,,Cancun
+15,02/05/2019,Sean Whitson,17,22,,Cancun
+15,02/05/2019,Niall Devane,20,21,,Cancun
+15,02/05/2019,Craig Hyland,28,20,,Cancun
+15,02/05/2019,Darragh Sheehan,22,17,,Cancun
+15,02/05/2019,Seanie McDermott,28,17,,Cancun
+15,02/05/2019,Dan Courtney,24,14,,Cancun
+14,25/08/2018,Oisin Tyrell,22,37,,Dunmurray Springs
+14,25/08/2018,Gearoid Comber,22,33,,Dunmurray Springs
+14,25/08/2018,Dan Courtney,23,33,,Dunmurray Springs
+14,25/08/2018,Darragh Sheehan,21,33,,Dunmurray Springs
+14,25/08/2018,Billy Archbold,22,31,,Dunmurray Springs
+14,25/08/2018,Craig Hyland,32,28,,Dunmurray Springs
+14,25/08/2018,David Benn,22,26,,Dunmurray Springs
+14,25/08/2018,Will Molloy,30,19,,Dunmurray Springs
+14,25/08/2018,Tiarnan O'Brien,28,18,,Dunmurray Springs
+13,05/08/2018,David Benn,24,35,,Craddockstown
+13,05/08/2018,Sean Whitson,17,34,,Craddockstown
+13,05/08/2018,Oisin Tyrell,22,31,,Craddockstown
+13,05/08/2018,Tiarnan O'Brien,28,28,,Craddockstown
+13,05/08/2018,Gearoid Comber,21,27,,Craddockstown
+13,05/08/2018,Seanie McDermott,27,24,,Craddockstown
+13,05/08/2018,Will Molloy,28,23,,Craddockstown
+13,05/08/2018,Darragh Sheehan,21,22,,Craddockstown
+13,05/08/2018,Craig Hyland,28,18,,Craddockstown
+12,16/06/2018,Darragh Sheehan,26,34,,St Helens Bay
+12,16/06/2018,Oisin Tyrell,24,32,,St Helens Bay
+12,16/06/2018,Sean Whitson,19,31,,St Helens Bay
+12,16/06/2018,Gearoid Comber,23,29,,St Helens Bay
+12,16/06/2018,Seanie McDermott,28,28,,St Helens Bay
+12,16/06/2018,Tiarnan O'Brien,28,25,,St Helens Bay
+12,16/06/2018,Niall Devane,21,24,,St Helens Bay
+12,16/06/2018,David Lynch,28,24,,St Helens Bay
+12,16/06/2018,Dan Courtney,23,22,,St Helens Bay
+11,06/05/2018,Darragh Sheehan,28,35,,Tulfarris
+11,06/05/2018,David Lynch,28,28,,Tulfarris
+11,06/05/2018,Gearoid Comber,20,27,,Tulfarris
+11,06/05/2018,Oisin Tyrell,22,26,,Tulfarris
+11,06/05/2018,Billy Archbold,20,25,,Tulfarris
+11,06/05/2018,David Benn,24,25,,Tulfarris
+11,06/05/2018,Dan Courtney,20,24,,Tulfarris
+11,06/05/2018,Tiarnan O'Brien,28,12,,Tulfarris
+10,18/06/2017,Luke Smith,20,36,,Citywest
+10,18/06/2017,Oisin Tyrell,25,32,,Citywest
+10,18/06/2017,Gearoid Comber,24,31,,Citywest
+10,18/06/2017,Billy Archbold,24,31,,Citywest
+10,18/06/2017,Dan Courtney,24,29,,Citywest
+10,18/06/2017,David Benn,26,27,,Citywest
+10,18/06/2017,Tiarnan O'Brien,28,26,,Citywest
+10,18/06/2017,Darragh Sheehan,28,25,,Citywest
+9,25/03/2017,Sean Whitson,18,42,,Grange Castle
+9,25/03/2017,Luke Smith,16,38,,Grange Castle
+9,25/03/2017,Billy Archbold,22,34,,Grange Castle
+9,25/03/2017,Gearoid Comber,22,34,,Grange Castle
+9,25/03/2017,Dan Courtney,22,33,,Grange Castle
+9,25/03/2017,Darragh Sheehan,28,31,,Grange Castle
+9,25/03/2017,Tiarnan O'Brien,28,29,,Grange Castle
+9,25/03/2017,Mark Donnelly,20,28,,Grange Castle
+8,08/10/2016,Luke Smith,17,37,,Rosslare Links
+8,08/10/2016,Sean Whitson,20,36,,Rosslare Links
+8,08/10/2016,Gearoid Comber,20,34,,Rosslare Links
+8,08/10/2016,Niall Devane,18,34,,Rosslare Links
+8,08/10/2016,Oisin Tyrell,22,32,,Rosslare Links
+8,08/10/2016,Dan Courtney,20,30,,Rosslare Links
+8,08/10/2016,Billy Archbold,20,21,,Rosslare Links
+8,08/10/2016,Tiarnan O'Brien,28,19,,Rosslare Links
+7,09/07/2016,Luke Smith,18,36,,Newbridge
+7,09/07/2016,Oisin Tyrell,22,34,,Newbridge
+7,09/07/2016,Gearoid Comber,22,32,,Newbridge
+7,09/07/2016,Billy Archbold,20,31,,Newbridge
+7,09/07/2016,David Benn,24,27,,Newbridge
+7,09/07/2016,Dan Courtney,22,25,,Newbridge
+7,09/07/2016,David Lynch,28,24,,Newbridge
+6,06/06/2016,Billy Archbold,22,34,,Rathcore
+6,06/06/2016,Oisin Tyrell,22,33,,Rathcore
+6,06/06/2016,Luke Smith,16,31,,Rathcore
+6,06/06/2016,Gearoid Comber,20,29,,Rathcore
+6,06/06/2016,David Benn,24,27,,Rathcore
+6,06/06/2016,Tiarnan O'Brien,28,22,,Rathcore
+5,23/04/2016,Gearoid Comber,22,29,,Killeen
+5,23/04/2016,Oisin Tyrell,21,28,,Killeen
+5,23/04/2016,David Benn,26,26,,Killeen
+5,23/04/2016,Tiarnan O'Brien,28,25,,Killeen
+5,23/04/2016,Luke Smith,14,24,,Killeen
+5,23/04/2016,Dan Courtney,22,24,,Killeen
+4,08/08/2015,Gearoid Comber,24,37,,Craddockstown
+4,08/08/2015,Oisin Tyrell,22,33,,Craddockstown
+4,08/08/2015,Dan Courtney,24,30,,Craddockstown
+4,08/08/2015,David Benn,26,29,,Craddockstown
+4,08/08/2015,Tiarnan O'Brien,28,25,,Craddockstown
+4,08/08/2015,Darragh Sheehan,28,24,,Craddockstown
+3,18/07/2015,Dan Courtney,24,40,,St Helens Bay
+3,18/07/2015,Sean Whitson,18,38,,St Helens Bay
+3,18/07/2015,David Benn,28,37,,St Helens Bay
+3,18/07/2015,Oisin Tyrell,24,35,,St Helens Bay
+3,18/07/2015,Darragh Sheehan,28,32,,St Helens Bay
+3,18/07/2015,Billy Archbold,19,30,,St Helens Bay
+3,18/07/2015,Tiarnan O'Brien,30,27,,St Helens Bay
+3,18/07/2015,David Lynch,28,26,,St Helens Bay
+3,18/07/2015,Gearoid Comber,22,26,,St Helens Bay
+2,28/06/2015,Billy Archbold,24,41,,Corballis Links
+2,28/06/2015,Gearoid Comber,24,33,,Corballis Links
+2,28/06/2015,Oisin Tyrell,24,23,,Corballis Links
+2,28/06/2015,Sean Whitson,18,21,,Corballis Links
+2,28/06/2015,David Benn,26,21,,Corballis Links
+2,28/06/2015,Dan Courtney,24,20,,Corballis Links
+1,09/05/2015,Seanie McDermott,28,33,,Grange Castle
+1,09/05/2015,Luke Smith,18,32,,Grange Castle
+1,09/05/2015,Billy Archbold,24,31,,Grange Castle
+1,09/05/2015,David Lynch,28,31,,Grange Castle
+1,09/05/2015,Oisin Tyrell,24,29,,Grange Castle
+1,09/05/2015,Gearoid Comber,24,29,,Grange Castle
