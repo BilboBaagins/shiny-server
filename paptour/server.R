@@ -801,7 +801,7 @@ shinyServer(function(input, output, session) {
           <!--<iframe width="80%" height = "550" src="https://www.instagram.com/p/CDGoNSrAV9J/embed/" frameborder="0"></iframe>-->
         </div>
         <div class="col-md-7 col-md-pull-5">
-          <h2 class="featurette-heading">Pretty in Pink<br><span class="text-muted">Gearldine Comber</span></h2>
+          <h2 class="featurette-heading">Pretty in Pink<br><span class="text-muted">Gary Comber</span></h2>
           <p class="lead">Some people will do anything for a 36 handicap. <a data-toggle="collapse" data-parent="#accordionOne" href="#collapseOne">Read more&hellip;</a></p>
            <div class="panel-group transparent-panel-group" id="accordionOne">
               <div class="panel panel-default">
@@ -810,29 +810,41 @@ shinyServer(function(input, output, session) {
                     <p><img href="#" data-toggle="modal" data-target="#player-oisin" src="images/oisin.png" src="images/oisin.png" alt="Oisin Tyrell PNG" class="img-circle player_profile" style="width: 10%; height: 10%"><a href="#" data-toggle="modal" data-target="#player-oisin"> Oisin Tyrell,</a> Editor-in-chief</p>
                     <blockquote class="blockquote">
                       <p>
-                        Geraldine (as he wishes to go by these days) is determined to convince his competitors that he should both be allowed to play off the red tees 
-                         while being allowed brandish an outrageous handicap of 36.  It appears this three time major winner is willing to do whatever it takes to win.  While
-                         this "killer" take-no-prisoners attitude is always bound to rub some people up the wrong way - his sheer cavalier nature has to be admired.
+                        Gary is one of those rare breeds of competitors who is willing to do anything it takes to win. In an effort to elevate himself from a three 
+                        star man to the lofty heights which four stars afford, Gary meticulously carried out a cunning plan that stretched almost two years. 
                       </p>
                       <br>
                       <p>
-                        Do not let his "pretty-in-pink" style, or his superficial name change fool you.  Gearldine is single-minded in his (or her) mission to 
-                        claim a fourth major title.
+                        While many of his peers were playing the illustrious game now off respectable, sub twenty handicaps, Gary spotted his chance.  Like so many 
+                        people post the Covid lockdowns, Gary found himself joining his local golf club, Craddockstown.  Upon joining, he turned in atrocious cards 
+                        to the handicap committee, all in the 130 - 140 stroke range. Why, you ask? Gary was given an extremely generous handicap of 36. For a man 
+                        who has played the game for more than fifteen years, with three successful major campaigns to his name, this seemed a wildly excessive 
+                        advantage to hold over his fellow competitors. 
                       </p>
                       <br>
                       <p>
-                        This reporter has recenty been speaking with the PAP Tour player formerly known as Gearoid. It seems the chips are stacked against him 
-                        once again (certainly in his own mind), with the predictable flow of excuses wafting in; "I broke my driver last month"; "I am going for beers tongiht
-                        so I will be off it in the morning"; "You chauvinist pigs wont even let me tee it up off the reds" etc...
+                        Here lies the secret to the man\'s success - win at all costs. While most players on the tour would dread for their handicap to move 
+                        backwards so drastically, this screamed OPPORTUNITY for the Pink Panther. 
                       </p>
                       <br>
                       <p>
-                        Could this all be an elaborate ruse?  Smoke and mirrors and fifty shades of pink?  Only one person knows for sure.  
+                        Of course his fellow PAP Tour players were never going to let Gary play off 36. Gary knew this. It was, of course, simple bargaining power. 
+                        "I\'ll meet you halfway" - he exclaimed in an attempt to reason with the rest of the field. 
                       </p>
                       <br>
                       <p>
-                        When the dust settles at 12:00 on Saturday morning, 24th June 2023 - we will all find out.  One things for sure - Geraldine will be teeing it
-                        up off 20, with the rest of the boys on the white tee box. 
+                        In the end, an agreement was reached where Gary would play off a still very generous 20, gaining two shots on most of his fellow long-time 
+                        tour members. 
+                      </p>
+                      <br>
+                      <p>
+                      Like the ultra competitive mind of Michael Jordan, he also gained something else - an edge (in his mind at least). You see, this is what 
+                        makes Gary such a competitor. He managed not only to gain himself a couple shots advantage on the field, he also managed to create a compelling 
+                        narrative in his own head that he was somehow aggrieved. 
+                      </p>
+                      <br>
+                      <p>
+                      Who knows for sure if this is all mere smoke and mirrors, or actual real tactical steps that will bear fruit?
                       </p>
                     </blockquote>
                   </div>

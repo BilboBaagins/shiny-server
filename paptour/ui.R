@@ -15,6 +15,7 @@ shinyUI(
   #reqSignin(
     htmltools::tagList(
     tags$head(
+      includeHTML("google_analytics.html"),
       tags$style(
         HTML(".navbar-nav {
               float: none !important;
